@@ -21,7 +21,7 @@ const char* fragment_shader_source =
     "}\0";
 
 void framebuffer_size_cb(GLFWwindow* window, int w, int h) {
-  glViewport(0, 0, w, h);
+  // glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow* window) {
   // Close window on Esc pressed
@@ -123,8 +123,7 @@ int main() {
   glEnableVertexAttribArray(0);
   // test Element Buffer Object
   float unique_vert[] = {
-      -0.3f, 0.3f, 0.0f, -0.3f, -0.3f, 0.0f,
-      0.5f,  0.5f, 0.0f, 0.5f,  -0.5f, 0.0f,
+      -0.5f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 1.f, 1.f, 0.0f, 0.5f, -0.5f, 0.0f,
   };
   GLuint indices[] = {0, 1, 2, 1, 2, 3};
   GLuint EBO, VAO3;
@@ -142,6 +141,7 @@ int main() {
                GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+  glBindVertexArray(0);
 
   // render loop
   while (!glfwWindowShouldClose(window)) {
@@ -165,7 +165,8 @@ int main() {
     // use 3 points another vao glBindVertexArray(VAO2);
     // glDrawArrays(GL_TRIANGLES, 0, 3);
     // an ebo
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindVertexArray(VAO3);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glCheckError();
     glfwSwapBuffers(window);  // We use double buffer
