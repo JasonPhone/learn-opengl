@@ -17,6 +17,7 @@ GLenum glCheckError_(const char *file, int line) {
         break;
       case GL_INVALID_OPERATION:              error = "INVALID_OPERATION";
         break;
+      // not found
       // case GL_STACK_OVERFLOW:                 error = "STACK_OVERFLOW";
       //   break;
       // case GL_STACK_UNDERFLOW:                error = "STACK_UNDERFLOW";
@@ -28,7 +29,9 @@ GLenum glCheckError_(const char *file, int line) {
     }
     // clang-format on
     std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+    return errorCode;
   }
-  return errorCode;
+  // here will always be no error
+  return GL_NO_ERROR;
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
