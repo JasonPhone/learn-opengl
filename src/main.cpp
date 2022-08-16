@@ -8,16 +8,21 @@ using namespace std;
 const char* vertex_shader_source =
     "#version 330 core\n"                    // version and profile
     "layout (location = 0) in vec3 aPos;\n"  // layout of input data
-    "void main()\n"                          // shader begin
+    "layout (location = 1) in vec3 aClr;\n"
+    "out vec4 color;\n"
+    "void main()\n"  // shader begin
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"  // set a vector
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   color = vec4(aClr, 1.0);\n"
     "}\0";
 const char* fragment_shader_source =
     "#version 330 core\n"
+    "in vec4 color;"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    // "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "    FragColor = color;"
     "}\0";
 
 void framebuffer_size_cb(GLFWwindow* window, int w, int h) {
@@ -29,6 +34,7 @@ void process_input(GLFWwindow* window) {
     glfwSetWindowShouldClose(window, true);
   }
 }
+
 
 int main() {
   glfwInit();  // init GLFW
@@ -76,71 +82,44 @@ int main() {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
-  // VAO and VBO
+  // vao and vbo
   // -----------
-  // Vertices data, 3 as a point
+  // Element Buffer Object
   // clang-format off
-  float vertices[] = {
-    -0.3f, 0.3f, 0.0f,
-    -0.3f, -0.3f, 0.0f,
-    0.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f,
-    0.5f, 0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
+  float unique_vert[] = {
+    // position         // color
+    -0.5f, -0.5f, 0.0f, 1.0, 0.0, 0.0,
+     0.5f, -0.5f, 0.0f, 0.0, 1.0, 0.0,
+     0.0f,  0.5f, 0.0f, 0.0, 0.0, 1.0,
   };
+  GLuint indices[] = {0, 1, 2};
   // clang-format on
-  // Create a Vertex Array Object to pack VBO things
-  GLuint VAO;
+  GLuint EBO, VAO, VBO;
+  glGenBuffers(1, &EBO);
+  glGenBuffers(1, &VBO);
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
-  // Vertex Buffer Object
-  GLuint VBO;
-  glGenBuffers(1, &VBO);
-  // VBO is a GL_ARRAY_BUFFER
-  // Then any buffer call will configure VBO
+
+  // buffer VBO
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  // Send vertex data to VBO as static draw (how GPU manages these data)
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  // Link vertex attrib
-  glVertexAttribPointer(
-      0,                  // location value of attrib "position"
-      3,                  // size (number) of vertex attrib
-      GL_FLOAT,           // data type
-      GL_FALSE,           // if need to normalize it
-      3 * sizeof(float),  // stride, step between appearance of this attrib
-      (void*)0  // offset (in Bytes!) of this attrib from begin of the buffer
-  );
-  glEnableVertexAttribArray(0);  // Vertex attrib is disabled by default
-  // another vao and vbo
-  GLuint VAO2, VBO2;
-  glGenVertexArrays(1, &VAO2);
-  glGenBuffers(1, &VBO2);
-  glBindVertexArray(VAO2);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
-                        (void*)(9 * sizeof(float)));
-  glEnableVertexAttribArray(0);
-  // test Element Buffer Object
-  float unique_vert[] = {
-      -0.5f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 1.f, 1.f, 0.0f, 0.5f, -0.5f, 0.0f,
-  };
-  GLuint indices[] = {0, 1, 2, 1, 2, 3};
-  GLuint EBO, VAO3;
-  glGenBuffers(1, &EBO);
-  glGenVertexArrays(1, &VAO3);
-  glBindVertexArray(VAO3);
-  glBindBuffer(GL_ARRAY_BUFFER,
-               VBO2);  // this buffer cannot be used by VAO2 anymore
   glBufferData(GL_ARRAY_BUFFER, sizeof(unique_vert), unique_vert,
                GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
-                        (void*)(9 * sizeof(float)));
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                        (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  // buffer EBO
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+
   glBindVertexArray(0);
 
   // render loop
@@ -159,16 +138,11 @@ int main() {
     glfwPollEvents();
     /****** Render ******/
     glUseProgram(shader_program);
-    // one vao
-    // glBindVertexArray(VAO);
-    // glDrawArrays(GL_TRIANGLES, 0, 3); // draw triangle, start from 3rd point,
-    // use 3 points another vao glBindVertexArray(VAO2);
-    // glDrawArrays(GL_TRIANGLES, 0, 3);
-    // an ebo
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBindVertexArray(VAO3);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glCheckError();
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+
+    if (glCheckError() != GL_NO_ERROR) break;
     glfwSwapBuffers(window);  // We use double buffer
   }
   glfwTerminate();
