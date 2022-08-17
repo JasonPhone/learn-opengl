@@ -1,8 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
-#include "utility/custom_utils.h"
+
+#include "utility/gl_error_checker.h"
 using namespace std;
 // Vertex shader src
 const char* vertex_shader_source =
@@ -34,7 +34,6 @@ void process_input(GLFWwindow* window) {
     glfwSetWindowShouldClose(window, true);
   }
 }
-
 
 int main() {
   glfwInit();  // init GLFW

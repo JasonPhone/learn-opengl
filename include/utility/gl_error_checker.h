@@ -1,9 +1,26 @@
+/**
+ * @file gl_error_checker.h
+ * @author ja50n (zs_feng@qq.com)
+ * @brief OpenGL error checker
+ * @version 0.1
+ * @date 2022-08-17
+ * 
+ * 
+ * 
+ */
+#pragma once
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <iostream>
 /**
- * NEVER call this after glfwTerminate()
+ * @brief Check if gl call causes error
+ * @note NEVER call this before glfwInit()
+ * 
+ * @param file filename where this check is called
+ * @param line line number where this check is called
+ * @return GLenum error code
  */
 GLenum glCheckError_(const char *file, int line) {
   GLenum errorCode;

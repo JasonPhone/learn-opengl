@@ -13,8 +13,9 @@ include_directories(
 #   ./src/hello.cpp
 # )
 
-add_executable(gl_learn ./src/glad.c ./src/main.cpp)
+# add_executable(gl_learn ./src/glad.c ./src/main.cpp)
 
-target_link_libraries(gl_learn
-  "${PROJECT_SOURCE_DIR}/lib/libglfw3.a"
-)
+# target_link_libraries(gl_learn
+#   "${PROJECT_SOURCE_DIR}/lib/libglfw3.a"
+# )
+add_subdirectory(./src/1.5.shader)
