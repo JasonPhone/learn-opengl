@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5.0)
 
-project("1.5.shader")
+project("test")
 
 
 add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/src/glad.c ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)

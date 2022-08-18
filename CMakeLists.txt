@@ -21,4 +21,6 @@ include_directories(
 # "${PROJECT_SOURCE_DIR}/lib/libglfw3.a"
 # )
 add_subdirectory(./apps/1.5.shader)
+add_subdirectory(./apps/test)
+
 add_subdirectory(./src)

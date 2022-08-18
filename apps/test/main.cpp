@@ -6,6 +6,26 @@
 #include "gl_learn/shader.h"
 using namespace std;
 // Vertex shader src
+const char* vertex_shader_source =
+    "#version 330 core\n"                    // version and profile
+    "layout (location = 0) in vec3 aPos;\n"  // layout of input data
+    "layout (location = 1) in vec3 aClr;\n"
+    "out vec4 color;\n"
+    "void main()\n"  // shader begin
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   color = vec4(aClr, 1.0);\n"
+    "}\0";
+const char* fragment_shader_source =
+    "#version 330 core\n"
+    "in vec4 color;"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    // "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "    FragColor = color;"
+    "}\0";
+
 void framebuffer_size_cb(GLFWwindow* window, int w, int h) {
   // glViewport(0, 0, w, h);
 }
@@ -45,7 +65,22 @@ int main() {
 
   // Build shader program
   // --------------------
-  Shader shader{"./shader.vs", "./shader.fs"};
+  // Creat a vertex shader and compile it
+  GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
+  glCompileShader(vertex_shader);
+  // Creat a fragment shader and compile it
+  GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
+  glCompileShader(fragment_shader);
+  // Link shaders to shader program
+  GLuint shader_program = glCreateProgram();
+  glAttachShader(shader_program, vertex_shader);
+  glAttachShader(shader_program, fragment_shader);
+  glLinkProgram(shader_program);
+  // Delete the shaders
+  glDeleteShader(vertex_shader);
+  glDeleteShader(fragment_shader);
 
   // vao and vbo
   // -----------
@@ -102,7 +137,7 @@ int main() {
     /****** Logic ******/
     glfwPollEvents();
     /****** Render ******/
-    shader.use();
+    glUseProgram(shader_program);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
