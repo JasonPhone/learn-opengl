@@ -2,7 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "utility/gl_error_checker.h"
+#include "gl_learn/gl_error_checker.h"
+#include "gl_learn/shader.h"
 using namespace std;
 // Vertex shader src
 const char* vertex_shader_source =
