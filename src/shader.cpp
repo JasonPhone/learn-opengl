@@ -25,12 +25,10 @@ Shader::Shader(const char* v_shader_path, const char* f_shader_path) {
   if (!success) {
     glGetProgramInfoLog(ID, sizeof(info_log), NULL, info_log);
     std::cerr << "Shader::Shader():"
-              << "\n\tShader linking error\n\t" << info_log
-              << std::endl;
+              << "\n\tShader linking error\n\t" << info_log << std::endl;
   }
   glDeleteShader(v_shader);
   glDeleteShader(f_shader);
-
 }
 
 GLuint Shader::read_and_compile(const char* path, GLenum shader_type) {
@@ -69,12 +67,19 @@ GLuint Shader::read_and_compile(const char* path, GLenum shader_type) {
   if (!success) {
     glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
     std::cerr << "Shader::read_and_compile():"
-              << "\n\tShader compiling error\n\t" << info_log
-              << std::endl;
+              << "\n\tShader compiling error\n\t" << info_log << std::endl;
   }
   return shader;
 }
 
-void Shader::use() {
-  glUseProgram(ID);
+void Shader::use() const { glUseProgram(ID); }
+
+void Shader::set_int(const std::string& uniform_name, int value) const {
+  glUniform1i(glGetUniformLocation(ID, uniform_name.c_str()), value);
+}
+void Shader::set_bool(const std::string& uniform_name, bool value) const {
+  glUniform1i(glGetUniformLocation(ID, uniform_name.c_str()), static_cast<int>(value));
+}
+void Shader::set_float(const std::string& uniform_name, float value) const {
+  glUniform1f(glGetUniformLocation(ID, uniform_name.c_str()), value);
 }

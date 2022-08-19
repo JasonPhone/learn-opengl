@@ -31,7 +31,28 @@ class Shader {
   /**
    * @brief use this program in context
    */
-  void use();
+  void use() const;
+  /**
+   * @brief Set the value of a existing int uniform
+   *
+   * @param uniform_name name of this uniform
+   * @param value value to set
+   */
+  void set_int(const std::string &uniform_name, int value) const;
+  /**
+   * @brief Set the value of a existing bool uniform
+   *
+   * @param uniform_name name of this uniform
+   * @param value value to set
+   */
+  void set_bool(const std::string &uniform_name, bool value) const;
+  /**
+   * @brief Set the value of a existing float uniform
+   *
+   * @param uniform_name name of this uniform
+   * @param value value to set
+   */
+  void set_float(const std::string &uniform_name, float value) const;
   /**
    * @brief id of shader program
    *
