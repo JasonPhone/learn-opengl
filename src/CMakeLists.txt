@@ -1,5 +1,13 @@
-set(HEADER_DIR "${CMAKE_SOURCE_DIR}/include/gl_learn")
+set(HEADER_DIR "${CMAKE_SOURCE_DIR}/include")
 
-add_library(shader shader.cpp ${HEADER_DIR}/shader.h)
+add_library(shader
+  STATIC
+  ${HEADER_DIR}/gl_learn/shader.h
+  shader.cpp
+)
 
-add_library(gl_error_checker gl_error_checker.cpp ${HEADER_DIR}/gl_error_checker.h)
+add_library(stb_image
+  STATIC
+  ${HEADER_DIR}/stb_image.h
+  stb_image.cpp
+)
