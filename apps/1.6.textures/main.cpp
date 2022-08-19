@@ -5,10 +5,9 @@
 #include "gl_learn/gl_error_checker.h"
 #include "gl_learn/shader.h"
 #include "stb_image.h"
-using namespace std;
 // Vertex shader src
 void framebuffer_size_cb(GLFWwindow* window, int w, int h) {
-  // glViewport(0, 0, w, h);
+  glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow* window) {
   // Close window on Esc pressed
@@ -18,10 +17,6 @@ void process_input(GLFWwindow* window) {
 }
 
 int main() {
-  int image_w, image_h, image_channel;
-  unsigned char *image = stbi_load("./opengl_logo.png", &image_w, &image_h, &image_channel, 0);
-  std::cout << image_w << "x" << image_h << ": " << image_channel << std::endl;
-
   glfwInit();  // init GLFW
   // set the OpenGL version
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // OpenGL 3.x
@@ -52,17 +47,74 @@ int main() {
   // --------------------
   Shader shader{"./shader.vs", "./shader.fs"};
 
+  // Texture
+  // -------
+  // generate texture
+  GLuint texture0;
+  glGenTextures(1, &texture0);
+  // bind texture
+  glBindTexture(GL_TEXTURE_2D, texture0);
+  // set warp and filter method
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // load image
+  stbi_set_flip_vertically_on_load(true);
+  int image_w, image_h, image_channel;
+  unsigned char* image =
+      stbi_load("./opengl_logo.png", &image_w, &image_h, &image_channel, 0);
+  if (image) {
+    // transfer texture data
+    glTexImage2D(GL_TEXTURE_2D,  // texture type
+                 0,       // level if this texture is to be part of mipmap
+                 GL_RGBA,  // format to store texture
+                 image_w, image_h,  // just as is
+                 0,       // border, should always be zero for legacy reason
+                 GL_RGBA,  // format of input data
+                 GL_UNSIGNED_BYTE,  // data layout
+                 image              // data
+    );  // now the texture has only base-level(0) image attached
+    // generate mipmap for current bind texture
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(image);
+  } else {
+    std::cerr << "::main: fail to load image\n";
+  }
+
+  GLuint texture1;
+  glGenTextures(1, &texture1);
+  // bind texture
+  glBindTexture(GL_TEXTURE_2D, texture1);
+  // set warp and filter method
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  image = stbi_load("./awesomeface.png", &image_w, &image_h, &image_channel, 0);
+  if (image) {
+    // transfer texture data
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_w, image_h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, image);
+    // generate mipmap for current bind texture
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(image);
+  } else {
+    std::cerr << "::main: fail to load image\n";
+  }
+
   // vao and vbo
   // -----------
   // Element Buffer Object
   // clang-format off
   float unique_vert[] = {
-    // position         // color
-    -0.5f, -0.5f, 0.0f, 1.0, 0.0, 0.0,
-     0.5f, -0.5f, 0.0f, 0.0, 1.0, 0.0,
-     0.0f,  0.5f, 0.0f, 0.0, 0.0, 1.0,
+  // ---- position ----    ---- color ----    - tex coord -
+     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
+     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f
   };
-  GLuint indices[] = {0, 1, 2};
+  GLuint indices[] = {0, 1, 3, 1, 2, 3};
   // clang-format on
   GLuint EBO, VAO, VBO;
   glGenBuffers(1, &EBO);
@@ -74,25 +126,33 @@ int main() {
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(unique_vert), unique_vert,
                GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  // vertex attrib: position
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
-
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+  // vertex attrib: color
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                         (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+  // vertex attrib: tex coord
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void*)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 
   // buffer EBO
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
   glBindVertexArray(0);
 
   // render loop
+  shader.use();
+  // tell the shader which texture unit they are
+  shader.set_int("texture0", 0);
+  shader.set_int("texture1", 1);
   while (!glfwWindowShouldClose(window)) {
     /**
      * Use color 0.3, 0.3, 0.3 to clear color buffer
@@ -107,15 +167,18 @@ int main() {
     /****** Logic ******/
     glfwPollEvents();
     /****** Render ******/
-    shader.use();
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     if (glCheckError() != GL_NO_ERROR) break;
     glfwSwapBuffers(window);  // We use double buffer
   }
   glfwTerminate();
-  cout << "done\n";
+  std::cout << "done\n";
   return 0;
 }
