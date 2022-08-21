@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5.0)
 
-project(gl_learn)
+project(learn-opengl)
 
 # find_package(OpenGL REQUIRED)
 include_directories(

@@ -7,7 +7,7 @@
  *
  */
 
-#include "gl_learn/shader.h"
+#include "learn-opengl/shader.h"
 Shader::Shader(const char* v_shader_path, const char* f_shader_path) {
   // read and compile two shaders
   GLuint v_shader = read_and_compile(v_shader_path, GL_VERTEX_SHADER);

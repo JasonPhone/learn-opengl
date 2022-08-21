@@ -2,8 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "gl_learn/gl_error_checker.h"
-#include "gl_learn/shader.h"
+#include "learn-opengl/gl_error_checker.h"
+#include "learn-opengl/shader.h"
 #include "stb_image.h"
 // Vertex shader src
 void framebuffer_size_cb(GLFWwindow* window, int w, int h) {
