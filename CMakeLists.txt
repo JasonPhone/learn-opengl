@@ -16,6 +16,7 @@ include_directories(
 # )
 add_subdirectory(./apps/1.5.shader)
 add_subdirectory(./apps/1.6.textures)
+add_subdirectory(./apps/1.7.transformations)
 add_subdirectory(./apps/test)
 
 add_subdirectory(./src)
