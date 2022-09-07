@@ -163,6 +163,18 @@ int main() {
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
   };
+  glm::vec3 cube_pos[] = {
+    glm::vec3( 0.0f,  0.0f,  0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3( 1.3f, -2.0f, -2.5f),
+    glm::vec3( 1.5f,  2.0f, -2.5f),
+    glm::vec3( 1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f)
+  };
   // clang-format on
   // prepare objects
   GLuint VAO, VBO;
@@ -199,7 +211,8 @@ int main() {
      * If called outside the render loop, screen will jitter
      */
     glClearColor(0.3, 0.3, 0.3, 1.0);  // rgba, the value used to clear
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);      // clear the color buffer
+    glClear(GL_COLOR_BUFFER_BIT |
+            GL_DEPTH_BUFFER_BIT);  // clear the color buffer
 
     /****** Input ******/
     process_input(window);
@@ -217,24 +230,28 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, texture1);
     glBindVertexArray(VAO);
 
-    glm::mat4 model{1};
     glm::mat4 view{1};
     glm::mat4 projection{1};
-    model = glm::rotate(model, float(glfwGetTime()), glm::vec3{0.5, 1.0, 0});
+    GLuint loc;
     view = glm::translate(view, glm::vec3{0, 0, -3});
     projection = glm::perspective(
         glm::radians(45.0f), float(1.0 * SCREEN_W / SCREEN_H), 0.1f, 100.0f);
-
-    GLuint loc = glGetUniformLocation(shader.ID, "model");
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
-
     loc = glGetUniformLocation(shader.ID, "view");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
 
     loc = glGetUniformLocation(shader.ID, "projection");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    for (int i = 0; i < 10; i++) {
+      glm::mat4 model{1};
+      model = glm::translate(model, cube_pos[i]);
+      model = glm::rotate(model, float(glfwGetTime() + 0.1 * i), glm::vec3{0.5, 1.0, 0});
+      // model = glm::rotate(model, float(20.0 * i), glm::vec3{1, 0.3, 0.5});
+      loc = glGetUniformLocation(shader.ID, "model");
+      glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
+
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 
     if (glCheckError() != GL_NO_ERROR) break;
     glfwSwapBuffers(window);  // We use double buffer
