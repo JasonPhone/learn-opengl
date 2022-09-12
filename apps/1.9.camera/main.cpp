@@ -197,6 +197,9 @@ int main() {
   // finish the recording
   glBindVertexArray(0);
 
+  /**
+   * @brief Render initializaion
+   */
   // render loop
   shader.use();
   // tell the shader which texture unit they are
@@ -213,6 +216,12 @@ int main() {
     glClearColor(0.3, 0.3, 0.3, 1.0);  // rgba, the value used to clear
     glClear(GL_COLOR_BUFFER_BIT |
             GL_DEPTH_BUFFER_BIT);  // clear the color buffer
+    // binding
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glBindVertexArray(VAO);
 
     /****** Input ******/
     process_input(window);
@@ -223,30 +232,28 @@ int main() {
     glfwPollEvents();
 
     /****** Render ******/
-    // binding
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glBindVertexArray(VAO);
-
     glm::mat4 view{1};
-    glm::mat4 projection{1};
+    double time = glfwGetTime();
+    double radius = 10;
+    double cam_x = sin(time) * radius;
+    double cam_z = cos(time) * radius;
+    view = glm::lookAt(glm::vec3{cam_x, 0, cam_z}, glm::vec3{0, 0, 0},
+                       glm::vec3{0, 1, 0});
+
+    glm::mat4 proj{1};
     GLuint loc;
-    view = glm::translate(view, glm::vec3{0, 0, -3});
-    projection = glm::perspective(
-        glm::radians(45.0f), float(1.0 * SCR_W / SCR_H), 0.1f, 100.0f);
+    proj = glm::perspective(glm::radians(45.0f), float(1.0 * SCR_W / SCR_H),
+                            0.1f, 100.0f);
     loc = glGetUniformLocation(shader.ID, "view");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
 
-    loc = glGetUniformLocation(shader.ID, "projection");
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projection));
+    loc = glGetUniformLocation(shader.ID, "proj");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(proj));
 
     for (int i = 0; i < 10; i++) {
       glm::mat4 model{1};
       model = glm::translate(model, cube_pos[i]);
-      model = glm::rotate(model, float(glfwGetTime() + 0.1 * i), glm::vec3{0.5, 1.0, 0});
-      // model = glm::rotate(model, float(20.0 * i), glm::vec3{1, 0.3, 0.5});
+      model = glm::rotate(model, float(20.0 * i), glm::vec3{1, 0.3, 0.5});
       loc = glGetUniformLocation(shader.ID, "model");
       glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
 
