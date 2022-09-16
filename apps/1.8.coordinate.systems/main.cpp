@@ -12,7 +12,7 @@
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
 
-void framebuffer_size_cb(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -52,7 +52,7 @@ int main() {
   // It's independent from window size of GLFW
   glViewport(0, 0, 800, 600);
   // Register the resize callback
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_cb);
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   /**
    * @brief build shader program
