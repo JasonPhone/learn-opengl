@@ -7,6 +7,7 @@
 
 #include "learn-opengl/gl_error_checker.h"
 #include "learn-opengl/shader.h"
+#include "learn-opengl/camera.h"
 #include "stb_image.h"
 
 constexpr int SCR_W = 800;
