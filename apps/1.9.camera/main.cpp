@@ -17,6 +17,7 @@ glm::vec3 cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
 // Front direction, not looking at point
 glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera cam{cam_pos, cam_front, cam_up};
 
 /**
  * @brief Delta time is the time cost to render last frame.
@@ -25,13 +26,7 @@ glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
  */
 float delta_time = 0;
 float last_frame = 0;
-/**
- * @brief Last position of mouse
- */
-double mouse_last_xpos = SCR_W / 2;
-double mouse_last_ypos = SCR_H / 2;
-bool mouse_first_capture = true;
-double camera_pitch = 0, camera_yaw = 0;
+
 float fov = 45;
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
@@ -41,51 +36,33 @@ void process_input(GLFWwindow *window) {
   // Close window on Esc pressed
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-  float cam_speed = 2.5 * delta_time;
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cam_pos += cam_speed * cam_front;
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cam_pos -= cam_speed * cam_front;
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cam_pos += cam_speed * glm::normalize(glm::cross(cam_up, cam_front));
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cam_pos -= cam_speed * glm::normalize(glm::cross(cam_up, cam_front));
-  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    cam_pos += cam_speed * cam_up;
-  if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    cam_pos -= cam_speed * cam_up;
+  // Camera move
+  float cam_speed = cam.move_speed() * delta_time;
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    cam.move(MOVE_DIRECTION::FORWARD, delta_time);
+  }
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    cam.move(MOVE_DIRECTION::BACKWARD, delta_time);
+  }
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+    cam.move(MOVE_DIRECTION::LEFT, delta_time);
+  }
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    cam.move(MOVE_DIRECTION::RIGHT, delta_time);
+  }
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    cam.move(MOVE_DIRECTION::UP, delta_time);
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+    cam.move(MOVE_DIRECTION::DOWN, delta_time);
+  }
 }
 void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
-  if (mouse_first_capture) {
-    mouse_first_capture = false;
-    mouse_last_xpos = xpos;
-    mouse_last_ypos = ypos;
-  }
-  double delta_xpos = xpos - mouse_last_xpos;
-  double delta_ypos = ypos - mouse_last_ypos;
-  delta_ypos = -delta_ypos;
-
-  mouse_last_xpos = xpos;
-  mouse_last_ypos = ypos;
-
-  float sensitivity = 0.05;
-  camera_pitch += sensitivity * delta_ypos;
-  camera_yaw += sensitivity * delta_xpos;
-
-  // Restrict the pitch range
-  camera_pitch = camera_pitch <= 89.0 ? camera_pitch : 89.0;
-  camera_pitch = camera_pitch >= -89.0 ? camera_pitch : -89.0;
-
-  glm::vec3 front;
-  front.x = cos(glm::radians(camera_pitch)) * sin(glm::radians(camera_yaw));
-  front.y = sin(glm::radians(camera_pitch));
-  front.z = -cos(glm::radians(camera_pitch)) * cos(glm::radians(camera_yaw));
-
-  cam_front = front;
+  cam.turn(xpos, ypos);
 }
 
 void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  fov-= yoffset;
+  fov -= yoffset;
   fov = fov <= 45 ? fov : 45;
   fov = fov >= 1 ? fov : 1;
 }
@@ -154,10 +131,9 @@ int main() {
       stbi_load("./opengl_logo.png", &image_w, &image_h, &image_channel, 0);
   if (image) {
     // transfer texture data
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA, image_w, image_h, 0, GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        image);  // now the texture has only base-level(0) image attached
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_w, image_h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, image);
+    // now the texture has only base-level(0) image attached
     // generate mipmap for current bind texture
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(image);
@@ -324,7 +300,7 @@ int main() {
     double radius = 10;
     double cam_x = sin(time) * radius;
     double cam_z = cos(time) * radius;
-    view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_up);
+    view = cam.view_matrix();
 
     glm::mat4 proj{1};
     GLuint loc;
