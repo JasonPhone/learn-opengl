@@ -46,7 +46,7 @@ class Camera {
    * Camera maintains the last position of cursor,
    * and turns the looking direction by the offset with current cursor position.
    *
-   * The transforming is based on quaternion.
+   * The transforming is based on Euler angles.
    *
    * @param xpos Current X position of cursor.
    * @param ypos Current Y position of cursor.
@@ -65,11 +65,23 @@ class Camera {
    */
   void set_move_speed(double spd);
   /**
+   * @brief Get the move speed 
+   * 
+   * @return double 
+   */
+  double move_speed();
+  /**
    * @brief Set the turn sensitivity.
    *
    * @param sensi New sensitivity.
    */
   void set_turn_sensitivity(double sensi);
+  /**
+   * @brief Get the turn sensitivity 
+   * 
+   * @return double 
+   */
+  double turn_sensitivity();
   /**
    * @brief Get the view matrix for MVP transformation.
    * @return glm::mat4 The view matrix of this camera.

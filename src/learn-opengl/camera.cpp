@@ -1,9 +1,8 @@
 #include "learn-opengl/camera.h"
+#include <glm/gtx/quaternion.hpp>
 
-Camera::Camera(glm::vec3 pos = glm::vec3{0, 0, 0},
-               glm::vec3 front = glm::vec3{0, 0, -1},
-               glm::vec3 up = glm::vec3{0, 1, 0}, double pitch = 0,
-               double yaw = 0)
+Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, double pitch,
+               double yaw)
     : m_camera_pos{pos},
       m_camera_front{glm::normalize(front)},
       m_camera_pitch{pitch},
@@ -13,8 +12,8 @@ Camera::Camera(glm::vec3 pos = glm::vec3{0, 0, 0},
   m_camera_up = glm::normalize(glm::cross(m_camera_right, m_camera_front));
 
   m_mouse_first_capture = true;
-  m_move_speed = 0.5;
-  m_turn_sensitivity = 0.5;
+  m_move_speed = 1;
+  m_turn_sensitivity = 0.05;
 }
 
 void Camera::move(MOVE_DIRECTION dir, double delta_time) {
@@ -39,22 +38,36 @@ void Camera::move(MOVE_DIRECTION dir, double delta_time) {
   }
 }
 
-/**
- * @brief Trun the camera direction up-down and left-right.
- * Camera maintains the last position of cursor,
- * and turns the looking direction by the offset with current cursor position.
- *
- * @param xpos Current X position of cursor.
- * @param ypos Current Y position of cursor.
- */
-// NOTE The camera vectors need rebuilding after turning
-void Camera::turn(double xpos, double ypos) {}
+void Camera::turn(double xpos, double ypos) {
+  if (m_mouse_first_capture) {
+    m_mouse_first_capture = false;
+    m_last_xpos = xpos;
+    m_last_ypos = ypos;
+  }
+  double xoffset = xpos - m_last_xpos;
+  double yoffset = ypos - m_last_ypos;
+  yoffset = -yoffset;
 
-/**
- * @brief Camera zoom in-out.
- *
- * @param yoffset Delta fov, in degree.
- */
+  m_last_xpos = xpos;
+  m_last_ypos = ypos;
+
+  float sensitivity = turn_sensitivity();
+  m_camera_pitch += sensitivity * yoffset;
+  m_camera_yaw += sensitivity * xoffset;
+
+  // Restrict the pitch range
+  m_camera_pitch = glm::clamp(m_camera_pitch, -89.9, 89.9);
+
+  glm::vec3 front;
+  front.x = cos(glm::radians(m_camera_pitch)) * sin(glm::radians(m_camera_yaw));
+  front.y = sin(glm::radians(m_camera_pitch));
+  front.z = -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
+
+  m_camera_front = front;
+  m_camera_right = glm::normalize(glm::cross(m_camera_front, m_camera_up));
+
+}
+
 void Camera::zoom(double yoffset) {
   m_camera_fov = glm::clamp(m_camera_fov - yoffset, 1.0, 45.0);
 }
@@ -63,9 +76,13 @@ void Camera::set_move_speed(double spd) {
   m_move_speed = glm::clamp(spd, 0.0, 1e5);
 }
 
+double Camera::move_speed() { return m_move_speed; }
+
 void Camera::set_turn_sensitivity(double sensi) {
   m_turn_sensitivity = glm::clamp(sensi, 0.0, 1e5);
 }
+
+double Camera::turn_sensitivity() { return m_turn_sensitivity; }
 
 glm::mat4 Camera::view_matrix() {
   return glm::lookAt(m_camera_pos, m_camera_pos + m_camera_front, m_camera_up);
