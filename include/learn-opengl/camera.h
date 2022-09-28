@@ -59,6 +59,12 @@ class Camera {
    */
   void zoom(double yoffset);
   /**
+   * @brief Get camera field of view in degree
+   * 
+   * @return double 
+   */
+  double fov();
+  /**
    * @brief Set the move speed.
    *
    * @param spd new speed

@@ -12,6 +12,7 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, double pitch,
   m_camera_up = glm::normalize(glm::cross(m_camera_right, m_camera_front));
 
   m_mouse_first_capture = true;
+  m_camera_fov = 45;
   m_move_speed = 1;
   m_turn_sensitivity = 0.05;
 }
@@ -61,15 +62,19 @@ void Camera::turn(double xpos, double ypos) {
   glm::vec3 front;
   front.x = cos(glm::radians(m_camera_pitch)) * sin(glm::radians(m_camera_yaw));
   front.y = sin(glm::radians(m_camera_pitch));
-  front.z = -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
+  front.z =
+      -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
 
   m_camera_front = front;
   m_camera_right = glm::normalize(glm::cross(m_camera_front, m_camera_up));
-
 }
 
 void Camera::zoom(double yoffset) {
   m_camera_fov = glm::clamp(m_camera_fov - yoffset, 1.0, 45.0);
+}
+
+double Camera::fov() {
+  return m_camera_fov;
 }
 
 void Camera::set_move_speed(double spd) {

@@ -27,8 +27,6 @@ Camera cam{cam_pos, cam_front, cam_up};
 float delta_time = 0;
 float last_frame = 0;
 
-float fov = 45;
-
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
   glViewport(0, 0, w, h);
 }
@@ -62,9 +60,7 @@ void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  fov -= yoffset;
-  fov = fov <= 45 ? fov : 45;
-  fov = fov >= 1 ? fov : 1;
+  cam.zoom(yoffset);
 }
 
 int main() {
@@ -304,8 +300,7 @@ int main() {
 
     glm::mat4 proj{1};
     GLuint loc;
-    proj = glm::perspective(glm::radians(fov), float(1.0 * SCR_W / SCR_H), 0.1f,
-                            100.0f);
+    proj = glm::perspective(glm::radians(cam.fov()), 1.0 * SCR_W / SCR_H, 0.1, 100.0);
     loc = glGetUniformLocation(shader.ID, "view");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
 
