@@ -3,3 +3,6 @@ build
 apps/test
 
 *.exe
+*.lib
+*.a
+*.pdb
