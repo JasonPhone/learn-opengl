@@ -19,3 +19,9 @@ add_library(camera
   ${HEADER_DIR}/learn-opengl/camera.h
   ./learn-opengl/camera.cpp
 )
+
+add_library(texture
+  STATIC
+  ${HEADER_DIR}/learn-opengl/texture.h
+  ./learn-opengl/texture.cpp
+)
