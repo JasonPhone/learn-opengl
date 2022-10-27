@@ -74,12 +74,19 @@ GLuint Shader::read_and_compile(const char* path, GLenum shader_type) {
 
 void Shader::use() const { glUseProgram(ID); }
 
-void Shader::set_int(const std::string& uniform_name, int value) const {
-  glUniform1i(glGetUniformLocation(ID, uniform_name.c_str()), value);
+void Shader::set_int(char const* uniform_name, int value) const {
+  glUniform1i(glGetUniformLocation(ID, uniform_name), value);
 }
-void Shader::set_bool(const std::string& uniform_name, bool value) const {
-  glUniform1i(glGetUniformLocation(ID, uniform_name.c_str()), static_cast<int>(value));
+void Shader::set_bool(char const* uniform_name, bool value) const {
+  glUniform1i(glGetUniformLocation(ID, uniform_name),
+              static_cast<int>(value));
 }
-void Shader::set_float(const std::string& uniform_name, float value) const {
-  glUniform1f(glGetUniformLocation(ID, uniform_name.c_str()), value);
+void Shader::set_float(char const* uniform_name, float value) const {
+  glUniform1f(glGetUniformLocation(ID, uniform_name), value);
+}
+void Shader::set_vec3(char const* uniform_name, float x, float y, float z) const {
+  glUniform3f(glGetUniformLocation(ID, uniform_name), x, y, z);
+}
+void Shader::set_mat4fv(char const* uniform_name, GLfloat const* ptr) const {
+  glUniformMatrix4fv(glGetUniformLocation(ID, uniform_name), 1, GL_FALSE, ptr);
 }

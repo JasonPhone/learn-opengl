@@ -27,32 +27,48 @@ class Shader {
    * @param v_shader_path path to vertex shader
    * @param f_shader_path path to fragment shader
    */
-  Shader(const char* v_shader_path, const char* f_shader_path);
+  Shader(char const *v_shader_path, char const *f_shader_path);
   /**
    * @brief use this program in context
    */
   void use() const;
   /**
-   * @brief Set the value of a existing int uniform
+   * @brief Set the value of an existing int uniform
    *
    * @param uniform_name name of this uniform
    * @param value value to set
    */
-  void set_int(const std::string &uniform_name, int value) const;
+  void set_int(char const *uniform_name, int value) const;
   /**
-   * @brief Set the value of a existing bool uniform
+   * @brief Set the value of an existing bool uniform
    *
    * @param uniform_name name of this uniform
    * @param value value to set
    */
-  void set_bool(const std::string &uniform_name, bool value) const;
+  void set_bool(char const *uniform_name, bool value) const;
   /**
-   * @brief Set the value of a existing float uniform
+   * @brief Set the value of an existing float uniform
    *
    * @param uniform_name name of this uniform
    * @param value value to set
    */
-  void set_float(const std::string &uniform_name, float value) const;
+  void set_float(char const *uniform_name, float value) const;
+  /**
+   * @brief Set the value of an existing vec3 uniform
+   *
+   * @param uniform_name Name of this uniform
+   * @param x Value x
+   * @param y Value y
+   * @param z Value z
+   */
+  void set_vec3(char const *uniform_name, float x, float y, float z) const;
+  /**
+   * @brief Set the value of an existing matrix4 uniform
+   * 
+   * @param uniform_name Name of this uniform
+   * @param ptr glm::value_ptr(.)
+   */
+  void set_mat4fv(char const *uniform_name, GLfloat const *ptr) const;
   /**
    * @brief id of shader program
    *
@@ -67,5 +83,5 @@ class Shader {
    * @param shader_type type of shader, just pass the GL_VERTEX_SHADER or else
    * @return GLuint shader handle
    */
-  GLuint read_and_compile(const char* path, GLenum shader_type);
+  GLuint read_and_compile(const char *path, GLenum shader_type);
 };
