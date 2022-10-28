@@ -61,7 +61,7 @@ class Shader {
    * @param y Value y
    * @param z Value z
    */
-  void set_vec3(char const *uniform_name, float x, float y, float z) const;
+  void set_vec3fv(char const *uniform_name, GLfloat const* ptr) const;
   /**
    * @brief Set the value of an existing matrix4 uniform
    * 
@@ -71,7 +71,6 @@ class Shader {
   void set_mat4fv(char const *uniform_name, GLfloat const *ptr) const;
   /**
    * @brief id of shader program
-   *
    */
   GLuint ID;
 
