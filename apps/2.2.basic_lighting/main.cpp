@@ -9,7 +9,6 @@
 #include "learn-opengl/shader.h"
 #include "learn-opengl/texture.h"
 #include "learn-opengl/camera.h"
-#include "learn-opengl/prefab.h"
 #include "stb_image.h"
 
 constexpr int SCR_W = 800;
@@ -21,7 +20,9 @@ glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera cam{cam_pos, cam_front, cam_up};
 
-glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
+glm::vec3 light_pos(1.5f, 1.5f, 4.0f);
+glm::vec3 light_color(1.0f, 1.0f, 1.0f);
+glm::vec3 obj_color(1.0f, 0.5f, 0.31f);
 
 float delta_time = 0;
 float last_frame = 0;
@@ -99,8 +100,48 @@ int main() {
    */
   // vertex data
   // clang-format off
-  glm::vec3 cube_pos[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
+  float cube[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
   };
   // clang-format on
   // prepare objects
@@ -113,15 +154,14 @@ int main() {
   // buffer VBO
   // Cube
   glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(prefab::cube), prefab::cube,
-               GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
   // vertex attrib: position
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
-  // vertex attrib: tex coord
-  // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-  //                       (void *)(3 * sizeof(float)));
-  // glEnableVertexAttribArray(1);
+  // vertex attrib: vertex normal
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                        (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
   glBindVertexArray(0);
 
   // Light
@@ -130,7 +170,7 @@ int main() {
   glBindVertexArray(VAO_light);
   // Reuse vertex data of cube
   glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
   glBindVertexArray(0);
 
@@ -155,30 +195,36 @@ int main() {
     delta_time = cur_frame - last_frame;
     last_frame = cur_frame;
 
+    float time = glfwGetTime();
+    float offset = sin(time) * 2;
+    glm::vec3 light_dypos(light_pos.x, light_pos.y, offset);
+
     /****** Render ******/
     // Cube
     glBindVertexArray(VAO_cube);
-    shader_cube.use();
-    shader_cube.set_vec3("obj_color", 1.0f, 0.5f, 0.31f);
-    shader_cube.set_vec3("light_color", 1.0f, 1.0f, 1.0f);
     glm::mat4 view = cam.view_matrix();
     glm::mat4 proj = glm::perspective(glm::radians(cam.fov()),
                                       1.0 * SCR_W / SCR_H, 0.1, 100.0);
     glm::mat4 model{1};
-    model = glm::translate(model, cube_pos[0]);
+    model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
+    glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
+    shader_cube.use();
     shader_cube.set_mat4fv("view", glm::value_ptr(view));
     shader_cube.set_mat4fv("proj", glm::value_ptr(proj));
     shader_cube.set_mat4fv("model", glm::value_ptr(model));
+    shader_cube.set_mat4fv("normal_mat", glm::value_ptr(normal_mat));
+    shader_cube.set_vec3fv("obj_color", glm::value_ptr(obj_color));
+    shader_cube.set_vec3fv("light_color", glm::value_ptr(light_color));
+    shader_cube.set_vec3fv("light_pos", glm::value_ptr(light_dypos));
+    shader_cube.set_vec3fv("view_pos", glm::value_ptr(cam.camera_position()));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     // Light
     glBindVertexArray(VAO_light);
     shader_light.use();
     view = cam.view_matrix();
-    proj = glm::perspective(glm::radians(cam.fov()), 1.0 * SCR_W / SCR_H, 0.1,
-                            100.0);
     model = glm::mat4{1};
-    model = glm::translate(model, light_pos);
+    model = glm::translate(model, light_dypos);
     model = glm::scale(model, glm::vec3(0.2f));
     shader_light.set_mat4fv("view", glm::value_ptr(view));
     shader_light.set_mat4fv("proj", glm::value_ptr(proj));
