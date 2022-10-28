@@ -30,9 +30,8 @@ class Camera {
    * @param yaw Camera turning left and right, in degree.
    */
   Camera(glm::vec3 pos = glm::vec3{0, 0, 0},
-            glm::vec3 front = glm::vec3{0, 0, -1},
-            glm::vec3 up = glm::vec3{0, 1, 0}, double pitch = 0,
-            double yaw = 0);
+         glm::vec3 front = glm::vec3{0, 0, -1},
+         glm::vec3 up = glm::vec3{0, 1, 0}, double pitch = 0, double yaw = 0);
   /**
    * @brief Move the camera by params.
    * The real distance is decided by the delta time and speed.
@@ -60,10 +59,10 @@ class Camera {
   void zoom(double yoffset);
   /**
    * @brief Get camera field of view in degree
-   * 
-   * @return double 
+   *
+   * @return double
    */
-  double fov();
+  double fov() const;
   /**
    * @brief Set the move speed.
    *
@@ -71,11 +70,11 @@ class Camera {
    */
   void set_move_speed(double spd);
   /**
-   * @brief Get the move speed 
-   * 
-   * @return double 
+   * @brief Get the move speed
+   *
+   * @return double
    */
-  double move_speed();
+  double move_speed() const;
   /**
    * @brief Set the turn sensitivity.
    *
@@ -83,16 +82,22 @@ class Camera {
    */
   void set_turn_sensitivity(double sensi);
   /**
-   * @brief Get the turn sensitivity 
-   * 
-   * @return double 
+   * @brief Get the turn sensitivity
+   *
+   * @return double
    */
-  double turn_sensitivity();
+  double turn_sensitivity() const;
   /**
    * @brief Get the view matrix for MVP transformation.
    * @return glm::mat4 The view matrix of this camera.
    */
-  glm::mat4 view_matrix();
+  glm::mat4 view_matrix() const;
+  /**
+   * @brief Get current camera position.
+   *
+   * @return glm::vec3 Position.
+   */
+  glm::vec3 camera_position() const;
 
  private:
   bool m_mouse_first_capture;
@@ -102,5 +107,5 @@ class Camera {
   glm::vec3 m_camera_pos;
   glm::vec3 m_camera_front;
   glm::vec3 m_camera_up;
-  glm::vec3 m_camera_right; // Auxiliary vector
+  glm::vec3 m_camera_right;  // Auxiliary vector
 };

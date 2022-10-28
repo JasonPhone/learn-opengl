@@ -73,22 +73,22 @@ void Camera::zoom(double yoffset) {
   m_camera_fov = glm::clamp(m_camera_fov - yoffset, 1.0, 45.0);
 }
 
-double Camera::fov() {
-  return m_camera_fov;
-}
+double Camera::fov() const { return m_camera_fov; }
 
 void Camera::set_move_speed(double spd) {
   m_move_speed = glm::clamp(spd, 0.0, 1e5);
 }
 
-double Camera::move_speed() { return m_move_speed; }
+double Camera::move_speed() const { return m_move_speed; }
 
 void Camera::set_turn_sensitivity(double sensi) {
   m_turn_sensitivity = glm::clamp(sensi, 0.0, 1e5);
 }
 
-double Camera::turn_sensitivity() { return m_turn_sensitivity; }
+double Camera::turn_sensitivity() const { return m_turn_sensitivity; }
 
-glm::mat4 Camera::view_matrix() {
+glm::mat4 Camera::view_matrix() const {
   return glm::lookAt(m_camera_pos, m_camera_pos + m_camera_front, m_camera_up);
 }
+
+glm::vec3 Camera::camera_position() const { return m_camera_pos; }
