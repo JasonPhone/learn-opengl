@@ -21,6 +21,7 @@ add_subdirectory(./apps/1.8.coordinate.systems)
 add_subdirectory(./apps/1.9.camera)
 add_subdirectory(./apps/2.1.colors)
 add_subdirectory(./apps/2.2.basic_lighting)
+add_subdirectory(./apps/2.3.materials)
 
 add_subdirectory(./apps/test)
 
