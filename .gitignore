@@ -1,6 +1,7 @@
-build
-.vscode
-apps/test
+/build/
+.vscode/
+/apps/test/
+/extern/
 
 *.exe
 *.lib
