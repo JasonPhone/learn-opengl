@@ -8,9 +8,18 @@ struct Material {
 };
 struct Light {
   vec3 position;
+
+  vec3 direction;
+
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
+
+  float constant;
+  float linear;
+  float quadratic;
+  float cutoff_inner;
+  float cutoff_outer;
 };
 
 in vec3 normal;
@@ -31,6 +40,7 @@ void main() {
   // Diffuse
   vec3 norm = normalize(normal);
   vec3 light_dir = normalize(lit.position - frag_pos);
+  // vec3 light_dir = normalize(-lit.direction); // Parallel light
   float diff = max(dot(norm, light_dir), 0.0);
   diffuse = diff * lit.diffuse * texture(mat.diffuse, tex_coord).rgb;
   // Specular
@@ -42,7 +52,22 @@ void main() {
 
   vec3 emission = texture(mat.emission, tex_coord).rgb;
 
-  vec3 result = ambient + diffuse + specular + emission * spec;
+  // Attenuation
+  float lit_dis = length(lit.position - frag_pos);
+  float attenuation = 1.0 / (lit.constant + lit.linear * lit_dis + lit.quadratic * lit_dis * lit_dis);
+
+  ambient *= attenuation;
+  diffuse *= attenuation;
+  specular *= attenuation;
+
+  vec3 result;
+  // Spotlight
+  float theta = dot(light_dir, normalize(-lit.direction));
+  float epsilon = lit.cutoff_inner - lit.cutoff_outer;
+  float intensity = clamp((theta - lit.cutoff_outer) / epsilon, 0.0, 1.0);
+  diffuse *= intensity;
+  specular *= intensity;
+  result = ambient + diffuse + specular + emission * spec;
 
   frag_color = vec4(result, 1.0);
 }

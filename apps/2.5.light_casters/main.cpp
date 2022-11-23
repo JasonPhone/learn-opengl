@@ -247,10 +247,18 @@ int main() {
 
       shader_cube.set_float("mat.shininess", 64.0f);
 
-      shader_cube.set_vec3fv("lit.position", glm::value_ptr(light_dypos));
+      shader_cube.set_vec3fv("lit.position", glm::value_ptr(cam.camera_position() + glm::vec3(0, -0.5, 0)));
+      shader_cube.set_vec3fv("lit.direction", glm::value_ptr(cam.camera_front()));
       shader_cube.set_vec3f("lit.ambient", 0.2f, 0.2f, 0.2f);
       shader_cube.set_vec3f("lit.diffuse", 0.5f, 0.5f, 0.5f);
       shader_cube.set_vec3f("lit.specular", 1.0f, 1.0f, 1.0f);
+
+      shader_cube.set_float("lit.constant", 1.0f);
+      shader_cube.set_float("lit.linear", 0.09f);
+      shader_cube.set_float("lit.quadratic", 0.032f);
+
+      shader_cube.set_float("lit.cutoff_inner", glm::cos(glm::radians(12.5f)));
+      shader_cube.set_float("lit.cutoff_outer", glm::cos(glm::radians(17.5f)));
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, diffuse_map);
