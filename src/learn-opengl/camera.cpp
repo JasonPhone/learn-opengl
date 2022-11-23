@@ -20,22 +20,24 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, double pitch,
 void Camera::move(MOVE_DIRECTION dir, double delta_time) {
   float distance = m_move_speed * delta_time;
   if (dir == MOVE_DIRECTION::FORWARD) {
-    m_camera_pos += m_camera_front * distance;
+    glm::vec3 dir = glm::normalize(glm::cross(m_camera_up, m_camera_right));
+    m_camera_pos += dir * distance;
   }
   if (dir == MOVE_DIRECTION::BACKWARD) {
-    m_camera_pos -= m_camera_front * distance;
+    glm::vec3 dir = glm::normalize(glm::cross(m_camera_right, m_camera_up));
+    m_camera_pos += dir * distance;
   }
   if (dir == MOVE_DIRECTION::UP) {
     m_camera_pos += m_camera_up * distance;
   }
   if (dir == MOVE_DIRECTION::DOWN) {
-    m_camera_pos -= m_camera_up * distance;
+    m_camera_pos += -m_camera_up * distance;
   }
   if (dir == MOVE_DIRECTION::RIGHT) {
     m_camera_pos += m_camera_right * distance;
   }
   if (dir == MOVE_DIRECTION::LEFT) {
-    m_camera_pos -= m_camera_right * distance;
+    m_camera_pos += -m_camera_right * distance;
   }
 }
 
