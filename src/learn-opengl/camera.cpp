@@ -94,3 +94,5 @@ glm::mat4 Camera::view_matrix() const {
 }
 
 glm::vec3 Camera::camera_position() const { return m_camera_pos; }
+
+glm::vec3 Camera::camera_front() const { return m_camera_front; }
