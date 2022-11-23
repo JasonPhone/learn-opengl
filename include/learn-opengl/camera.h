@@ -98,7 +98,7 @@ class Camera {
    * @return glm::vec3 Position.
    */
   glm::vec3 camera_position() const;
-  glm::vec3 Camera::camera_front() const;
+  glm::vec3 camera_front() const;
 
  private:
   bool m_mouse_first_capture;
