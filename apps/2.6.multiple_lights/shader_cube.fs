@@ -59,7 +59,7 @@ void main() {
       result += get_PointLight(point_lights[i], frag_pos, norm, view_dir);
   }
   // SpotLight
-  // result += get_SpotLight(spot_light, frag_pos, norm, view_dir);
+  result += get_SpotLight(spot_light, frag_pos, norm, view_dir);
 
   frag_color = vec4(result, 1.0);
 }
@@ -101,6 +101,7 @@ vec3 get_PointLight(PointLight light, vec3 frag_pos, vec3 normal,
   ambient *= attenuation;
   diffuse *= attenuation;
   specular *= attenuation;
+  // Emission has no attenuation, to make a 'magic' feel.
   return (ambient + diffuse + specular + emission);
 }
 

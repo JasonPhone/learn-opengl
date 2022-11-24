@@ -240,7 +240,7 @@ int main() {
       proj = glm::perspective(glm::radians(cam.fov()),
                                         1.0 * SCR_W / SCR_H, 0.1, 100.0);
       model = glm::translate(model, cube_pos[i]);
-      model = glm::rotate(model, glm::radians(time) * (10 + i), glm::vec3(0, 1, 0));
+      // model = glm::rotate(model, glm::radians(time) * (10 + i), glm::vec3(0, 1, 0));
       glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
       shader_cube.use();
       shader_cube.set_mat4fv("view", glm::value_ptr(view));
@@ -254,9 +254,9 @@ int main() {
       // Light casters
       // DirLight
       shader_cube.set_vec3f("dir_light.direction", -0.2f, -1.0f, -0.3f);
-      shader_cube.set_vec3f("dir_light.ambient", 0.2f, 0.2f, 0.2f);
-      shader_cube.set_vec3f("dir_light.diffuse", 0.5f, 0.5f, 0.5f);
-      shader_cube.set_vec3f("dir_light.specular", 1.0f, 1.0f, 1.0f);
+      shader_cube.set_vec3f("dir_light.ambient", 0.1f, 0.1f, 0.1f);
+      shader_cube.set_vec3f("dir_light.diffuse", 0.2f, 0.2f, 0.2f);
+      shader_cube.set_vec3f("dir_light.specular", 0.5f, 0.5f, 0.5f);
       // PointLight
       for (int i = 0; i < 4; i++) {
         std::string light_name = "point_lights[";
@@ -264,8 +264,8 @@ int main() {
         light_name += "].";
 
         shader_cube.set_vec3fv((light_name + "position").c_str(), glm::value_ptr(PointLight_pos[i]));
-        shader_cube.set_vec3f((light_name + "ambient").c_str(), 0.2f, 0.2f, 0.2f);
-        shader_cube.set_vec3f((light_name + "diffuse").c_str(), 0.5f, 0.5f, 0.5f);
+        shader_cube.set_vec3f((light_name + "ambient").c_str(), 0.1f, 0.1f, 0.1f);
+        shader_cube.set_vec3f((light_name + "diffuse").c_str(), 0.3f, 0.3f, 0.3f);
         shader_cube.set_vec3f((light_name + "specular").c_str(), 1.0f, 1.0f, 1.0f);
 
         shader_cube.set_float((light_name + "constant").c_str(), 1.0f);
@@ -273,14 +273,14 @@ int main() {
         shader_cube.set_float((light_name + "quadratic").c_str(), 0.032f);
       }
       // SpotLight
-      shader_cube.set_vec3fv("spot_light.point_light.position", glm::value_ptr(cam.camera_position() + glm::vec3(0, -0.5, 0)));
-      shader_cube.set_vec3f("spot_light.point_light.ambient", 0.2f, 0.2f, 0.2f);
+      shader_cube.set_vec3fv("spot_light.point_light.position", glm::value_ptr(cam.camera_position()));
+      shader_cube.set_vec3f("spot_light.point_light.ambient", 0.0f, 0.0f, 0.0f);
       shader_cube.set_vec3f("spot_light.point_light.diffuse", 0.5f, 0.5f, 0.5f);
       shader_cube.set_vec3f("spot_light.point_light.specular", 1.0f, 1.0f, 1.0f);
 
       shader_cube.set_float("spot_light.point_light.constant", 1.0f);
-      shader_cube.set_float("spot_light.point_light.linear", 0.09f);
-      shader_cube.set_float("spot_light.point_light.quadratic", 0.032f);
+      shader_cube.set_float("spot_light.point_light.linear", 0.22f);
+      shader_cube.set_float("spot_light.point_light.quadratic", 0.20f);
 
       shader_cube.set_vec3fv("spot_light.direction", glm::value_ptr(cam.camera_front()));
       shader_cube.set_float("spot_light.cutoff_inner", glm::cos(glm::radians(12.5f)));
