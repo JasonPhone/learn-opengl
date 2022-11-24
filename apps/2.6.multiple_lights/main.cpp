@@ -20,7 +20,13 @@ glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera cam{cam_pos, cam_front, cam_up};
 
-glm::vec3 light_pos(1.5f, 1.5f, 4.0f);
+glm::vec3 PointLight_pos[] = {
+    glm::vec3( 0.7f,  0.2f,  2.0f),
+    glm::vec3( 2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3( 0.0f,  0.0f, -3.0f)
+};
+
 glm::vec3 light_color(1.0f, 1.0f, 1.0f);
 glm::vec3 obj_color(1.0f, 0.5f, 0.31f);
 
@@ -217,8 +223,6 @@ int main() {
     last_frame = cur_frame;
 
     float time = glfwGetTime();
-    float offset = sin(time) * 2;
-    glm::vec3 light_dypos(light_pos.x, offset, light_pos.z);
 
     /****** Input ******/
     process_input(window);
@@ -247,18 +251,40 @@ int main() {
 
       shader_cube.set_float("mat.shininess", 64.0f);
 
-      shader_cube.set_vec3fv("lit.position", glm::value_ptr(cam.camera_position() + glm::vec3(0, -0.5, 0)));
-      shader_cube.set_vec3fv("lit.direction", glm::value_ptr(cam.camera_front()));
-      shader_cube.set_vec3f("lit.ambient", 0.2f, 0.2f, 0.2f);
-      shader_cube.set_vec3f("lit.diffuse", 0.5f, 0.5f, 0.5f);
-      shader_cube.set_vec3f("lit.specular", 1.0f, 1.0f, 1.0f);
+      // Light casters
+      // DirLight
+      shader_cube.set_vec3f("dir_light.direction", -0.2f, -1.0f, -0.3f);
+      shader_cube.set_vec3f("dir_light.ambient", 0.2f, 0.2f, 0.2f);
+      shader_cube.set_vec3f("dir_light.diffuse", 0.5f, 0.5f, 0.5f);
+      shader_cube.set_vec3f("dir_light.specular", 1.0f, 1.0f, 1.0f);
+      // PointLight
+      for (int i = 0; i < 4; i++) {
+        std::string light_name = "point_lights[";
+        light_name += '0' + i;
+        light_name += "].";
 
-      shader_cube.set_float("lit.constant", 1.0f);
-      shader_cube.set_float("lit.linear", 0.09f);
-      shader_cube.set_float("lit.quadratic", 0.032f);
+        shader_cube.set_vec3fv((light_name + "position").c_str(), glm::value_ptr(PointLight_pos[i]));
+        shader_cube.set_vec3f((light_name + "ambient").c_str(), 0.2f, 0.2f, 0.2f);
+        shader_cube.set_vec3f((light_name + "diffuse").c_str(), 0.5f, 0.5f, 0.5f);
+        shader_cube.set_vec3f((light_name + "specular").c_str(), 1.0f, 1.0f, 1.0f);
 
-      shader_cube.set_float("lit.cutoff_inner", glm::cos(glm::radians(12.5f)));
-      shader_cube.set_float("lit.cutoff_outer", glm::cos(glm::radians(17.5f)));
+        shader_cube.set_float((light_name + "constant").c_str(), 1.0f);
+        shader_cube.set_float((light_name + "linear").c_str(), 0.09f);
+        shader_cube.set_float((light_name + "quadratic").c_str(), 0.032f);
+      }
+      // SpotLight
+      shader_cube.set_vec3fv("spot_light.point_light.position", glm::value_ptr(cam.camera_position() + glm::vec3(0, -0.5, 0)));
+      shader_cube.set_vec3f("spot_light.point_light.ambient", 0.2f, 0.2f, 0.2f);
+      shader_cube.set_vec3f("spot_light.point_light.diffuse", 0.5f, 0.5f, 0.5f);
+      shader_cube.set_vec3f("spot_light.point_light.specular", 1.0f, 1.0f, 1.0f);
+
+      shader_cube.set_float("spot_light.point_light.constant", 1.0f);
+      shader_cube.set_float("spot_light.point_light.linear", 0.09f);
+      shader_cube.set_float("spot_light.point_light.quadratic", 0.032f);
+
+      shader_cube.set_vec3fv("spot_light.direction", glm::value_ptr(cam.camera_front()));
+      shader_cube.set_float("spot_light.cutoff_inner", glm::cos(glm::radians(12.5f)));
+      shader_cube.set_float("spot_light.cutoff_outer", glm::cos(glm::radians(17.5f)));
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, diffuse_map);
@@ -274,15 +300,17 @@ int main() {
     // Light
     shader_light.use();
     view = cam.view_matrix();
-    model = glm::mat4{1};
-    model = glm::translate(model, light_dypos);
-    model = glm::scale(model, glm::vec3(0.2f));
-    shader_light.set_mat4fv("view", glm::value_ptr(view));
-    shader_light.set_mat4fv("proj", glm::value_ptr(proj));
-    shader_light.set_mat4fv("model", glm::value_ptr(model));
+    for (int i = 0; i < 4; i++) {
+      model = glm::mat4{1};
+      model = glm::translate(model, PointLight_pos[i]);
+      model = glm::scale(model, glm::vec3(0.2f));
+      shader_light.set_mat4fv("view", glm::value_ptr(view));
+      shader_light.set_mat4fv("proj", glm::value_ptr(proj));
+      shader_light.set_mat4fv("model", glm::value_ptr(model));
 
-    glBindVertexArray(VAO_light);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+      glBindVertexArray(VAO_light);
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 
     if (glCheckError() != GL_NO_ERROR) break;
     glfwSwapBuffers(window);  // We use double buffer
