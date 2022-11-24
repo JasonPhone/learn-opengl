@@ -1,0 +1,6 @@
+add_subdirectory(./2.1.colors)
+add_subdirectory(./2.2.basic_lighting)
+add_subdirectory(./2.3.materials)
+add_subdirectory(./2.4.lighting_maps)
+add_subdirectory(./2.5.light_casters)
+add_subdirectory(./2.6.multiple_lights)

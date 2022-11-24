@@ -1,0 +1,5 @@
+add_subdirectory(./1.5.shader)
+add_subdirectory(./1.6.textures)
+add_subdirectory(./1.7.transformations)
+add_subdirectory(./1.8.coordinate.systems)
+add_subdirectory(./1.9.camera)
