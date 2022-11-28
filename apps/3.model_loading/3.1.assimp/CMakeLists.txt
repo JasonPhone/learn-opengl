@@ -9,7 +9,6 @@ add_executable(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-
 target_link_libraries(${PROJECT_NAME} PRIVATE
   "${CMAKE_SOURCE_DIR}/lib/libglfw3.a"
   shader
@@ -19,6 +18,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/dll/"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  "${CMAKE_SOURCE_DIR}/build/_deps/assimp-build/bin/"
+  $<TARGET_FILE_DIR:${PROJECT_NAME}>
+)

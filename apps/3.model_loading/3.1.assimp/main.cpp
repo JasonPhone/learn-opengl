@@ -83,7 +83,7 @@ void test_assimp(char const *path) {
 
 int main() {
   std::cout << "hello" << std::endl; 
-  test_assimp("./model/nanosuir.obj");
+  test_assimp("./model/nanosuit.obj");
   return 0;
   /**
    * @brief init glfw window
