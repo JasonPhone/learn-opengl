@@ -19,6 +19,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
-  "${CMAKE_SOURCE_DIR}/build/_deps/assimp-build/bin/"
+  "${CMAKE_SOURCE_DIR}/bin/"
   $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
