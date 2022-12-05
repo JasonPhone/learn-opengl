@@ -14,6 +14,7 @@
 #include "learn-opengl/shader.h"
 #include "learn-opengl/camera.h"
 #include "learn-opengl/texture.h"
+#include "learn-opengl/mesh.h"
 #include "stb_image.h"
 
 constexpr int SCR_W = 800;
@@ -83,8 +84,7 @@ void test_assimp(char const *path) {
 
 int main() {
   std::cout << "hello" << std::endl; 
-  test_assimp("./model/nanosuit.obj");
-  return 0;
+  test_assimp("../model/nanosuit.obj");
   /**
    * @brief init glfw window
    */
@@ -119,8 +119,8 @@ int main() {
   /**
    * @brief build shader program
    */
-  Shader shader_light{"./shader_light.vs", "./shader_light.fs"};
-  Shader shader_cube{"./shader_cube.vs", "./shader_cube.fs"};
+  Shader shader_light{"../shader/shader_light.vs", "../shader/shader_light.fs"};
+  Shader shader_cube{"../shader/shader_cube.vs", "../shader/shader_cube.fs"};
 
   /**
    * @brief VAO and VBO
@@ -222,9 +222,9 @@ int main() {
   // Diffuse map
   // Texture2D diffuse_map("./container2_diffuse.png");
   // Texture2D specular_map("./container2_specular.png");
-  GLuint diffuse_map = load_texture("./container2_diffuse.png");
-  GLuint specular_map = load_texture("./container2_specular.png");
-  GLuint emission_map = load_texture("./matrix.jpg");
+  GLuint diffuse_map = load_texture("../texture/container2_diffuse.png");
+  GLuint specular_map = load_texture("../texture/container2_specular.png");
+  GLuint emission_map = load_texture("../texture/matrix.jpg");
 
   /**
    * @brief Render initializaion

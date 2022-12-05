@@ -1,1 +1,1 @@
-add_subdirectory(./3.1.assimp)
+add_subdirectory(./3.2.mesh)
