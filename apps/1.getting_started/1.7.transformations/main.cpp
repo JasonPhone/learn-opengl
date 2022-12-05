@@ -59,7 +59,6 @@ int main() {
    * @brief setup texture
    * --------------------
    */
-  // TODO use a class to do this
   // generate texture0
   GLuint texture0;
   glGenTextures(1, &texture0);
@@ -158,7 +157,7 @@ int main() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                GL_STATIC_DRAW);
-  // NOTE the offset should align with vertex data, not index array
+  // the offset should align with vertex data, not index array
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
   // finish the recording

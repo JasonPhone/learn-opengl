@@ -109,7 +109,6 @@ int main() {
    * @brief setup texture
    * --------------------
    */
-  // TODO use a class to do this
   // generate texture0
   GLuint texture0;
   glGenTextures(1, &texture0);
