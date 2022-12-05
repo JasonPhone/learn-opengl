@@ -24,3 +24,9 @@ add_library(texture
   ${HEADER_DIR}/learn-opengl/texture.h
   ./learn-opengl/texture.cpp
 )
+
+add_library(mesh
+  STATIC
+  ${HEADER_DIR}/learn-opengl/mesh.h
+  ./learn-opengl/mesh.cpp
+)
