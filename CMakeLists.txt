@@ -20,7 +20,6 @@ if(NOT TARGET assimp)
 
     GIT_PROGRESS TRUE
     SOURCE_DIR ${CMAKE_SOURCE_DIR}/extern/assimp
-    # BINARY_DIR ${CMAKE_SOURCE_DIR}/bin
   )
 
   set(ASSIMP_FOLDER ${3DPARTY_FOLDER}/assimp)
