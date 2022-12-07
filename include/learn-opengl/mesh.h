@@ -10,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+// #include "learn-opengl/shader.h"
+class Shader;
 
 // To receive vertices
 struct Vertex {
@@ -31,16 +33,16 @@ class Mesh {
     setup_mesh();
   }
   /**
-   * @brief Draw the mesh.
+   * @brief Draw the mesh using provided shader.
    */
-  void draw();
+  void draw(Shader const& shader);
 
   std::vector<Vertex> m_vertices;
   std::vector<unsigned int> m_indices;
   std::vector<Texture> m_textures;
 
  private:
-  unsigned int VAO, VBO, EBO;
+  unsigned int m_VAO, m_VBO, m_EBO;
   /**
    * @brief Setup mesh object and fill the buffer obj and array obj.
    */
