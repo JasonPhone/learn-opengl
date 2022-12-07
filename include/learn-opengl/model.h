@@ -1,7 +1,7 @@
 /**
- * @file mesh.h
+ * @file model.h
  * @author ja50n (zs_feng@qq.com)
- * @brief Mesh class to receive (assimp or other library) imported models.
+ * @brief Model and Mesh classes to receive (assimp or other library) imported models.
  * @version 0.1
  * @date 2022-12-05
  *
@@ -24,6 +24,7 @@ struct Texture {
   unsigned int id;
   std::string type;
 };
+
 class Mesh {
  public:
   // TODO move?
@@ -47,4 +48,12 @@ class Mesh {
    * @brief Setup mesh object and fill the buffer obj and array obj.
    */
   void setup_mesh();
+};
+
+/**
+ * @brief Store a model inported from assimp
+ *
+ */
+class Model {
+
 };
