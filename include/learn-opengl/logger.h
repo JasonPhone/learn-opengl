@@ -4,7 +4,7 @@
  * @brief OpenGL error checker
  * @version 0.1
  * @date 2022-08-17
- * 
+ *
  */
 #pragma once
 
@@ -15,12 +15,12 @@
 /**
  * @brief Check if gl call causes error
  * @note NEVER call this before glfwInit()
- * 
+ *
  * @param file filename where this check is called
  * @param line line number where this check is called
  * @return GLenum error code
  */
-GLenum glCheckError_(const char *file, int line) {
+GLenum glCheckError_(const char* file, int line) {
   GLenum errorCode;
   while ((errorCode = glGetError()) != GL_NO_ERROR) {
     // clang-format off
@@ -50,3 +50,8 @@ GLenum glCheckError_(const char *file, int line) {
   return GL_NO_ERROR;
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
+
+void LOG_(const char* file, int line, const char* prompt, const char* content) {
+  std::cerr << file << "(" << line << "): " << prompt  << " " << content << std::endl;
+}
+#define LOG(prompt, content) LOG_(__FILE__, __LINE__, prompt, content)

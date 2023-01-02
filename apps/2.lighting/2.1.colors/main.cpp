@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#include "learn-opengl/gl_error_checker.h"
+#include "learn-opengl/logger.h"
 #include "learn-opengl/shader.h"
 #include "learn-opengl/texture.h"
 #include "learn-opengl/camera.h"
@@ -201,8 +201,8 @@ int main() {
     // Cube
     glBindVertexArray(VAO_cube);
     shader_cube.use();
-    shader_cube.set_vec3("obj_color", 1.0f, 0.5f, 0.31f);
-    shader_cube.set_vec3("light_color", 1.0f, 1.0f, 1.0f);
+    shader_cube.set_vec3f("obj_color", 1.0f, 0.5f, 0.31f);
+    shader_cube.set_vec3f("light_color", 1.0f, 1.0f, 1.0f);
     glm::mat4 view = cam.view_matrix();
     glm::mat4 proj = glm::perspective(glm::radians(cam.fov()),
                                       1.0 * SCR_W / SCR_H, 0.1, 100.0);
