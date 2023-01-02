@@ -30,3 +30,4 @@ add_library(model
   ${HEADER_DIR}/learn-opengl/model.h
   ./learn-opengl/model.cpp
 )
+target_link_libraries(model PRIVATE assimp::assimp)
