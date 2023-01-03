@@ -11,7 +11,6 @@
 #include "stb_image.h"
 
 #include <iostream>
-#include <filesystem>
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 800;
@@ -21,71 +20,10 @@ float delta_time = 0.0f;
 float last_frame = 0.0f;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 10.0f, 10.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float last_x = SCR_WIDTH / 2.0f;
 float last_y = SCR_HEIGHT / 2.0f;
 bool first_mouse = true;
-
-// Vertices
-// clang-format off
-float cube_vertices[] = {
-  // positions          // texture Coords
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-   0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-   0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-   0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
-// Note we set tex coords higher than 1
-// Together with GL_REPEAT as texture wrapping mode
-// This will cause the floor texture to repeat
-float plane_vertices[] = {
-  // positions          // texture Coords
-   5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-  -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
-  -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
-
-   5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-  -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
-   5.0f, -0.5f, -5.0f,  2.0f, 2.0f
-};
-// clang-format on
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
   glViewport(0, 0, w, h);
@@ -150,16 +88,77 @@ int main() {
     return -1;
   }
 
-  stbi_set_flip_vertically_on_load(true);
+  // stbi_set_flip_vertically_on_load(true);
 
   // Configure global opengl state
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
 
   // Build and compile shaders
   // -------------------------
   Shader shader("../shader/depth_testing.vs", "../shader/depth_testing.fs");
 
+  // Vertices
+  // clang-format off
+  float cube_vertices[] = {
+    // positions          // texture Coords
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+  };
+  // Note we set tex coords higher than 1
+  // Together with GL_REPEAT as texture wrapping mode
+  // This will cause the floor texture to repeat
+  float plane_vertices[] = {
+    // positions          // texture Coords
+    5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+    -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+    -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+    5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+    -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+    5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+  };
+  // clang-format on
   // Cube objects
   GLuint cube_VAO, cube_VBO;
   glGenVertexArrays(1, &cube_VAO);
@@ -206,28 +205,28 @@ int main() {
     // Input
     // -----
     process_input(window);
+    glfwPollEvents();
 
     // Render
     // ------
-    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    glClearColor(0.1, 0.1, 0.1, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Enable shader before setting uniforms
-    // shader.use();
+    shader.use();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera.view_matrix();
-    glm::mat4 projection =
-        glm::perspective(glm::radians(float(camera.fov())),
-                         (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(
+        glm::radians(camera.fov()), 1.0 * SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0);
     shader.set_mat4fv("view", glm::value_ptr(view));
     shader.set_mat4fv("projection", glm::value_ptr(projection));
     // 2 cubes
-    glBindVertexArray(cube_VAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, cubeTexture);
 
     model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
     shader.set_mat4fv("model", glm::value_ptr(model));
+    glBindVertexArray(cube_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     model = glm::mat4(1.0f);
@@ -235,15 +234,14 @@ int main() {
     shader.set_mat4fv("model", glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, 36);
     // Floor
-    glBindVertexArray(plane_VAO);
     glBindTexture(GL_TEXTURE_2D, floorTexture);
 
     shader.set_mat4fv("model", glm::value_ptr(glm::mat4(1.0f)));
+    glBindVertexArray(plane_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
     glfwSwapBuffers(window);
-    glfwPollEvents();
   }
 
   glfwTerminate();
