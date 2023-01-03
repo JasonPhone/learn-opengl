@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#include "learn-opengl/logger.h"
+#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
 #include "stb_image.h"
 

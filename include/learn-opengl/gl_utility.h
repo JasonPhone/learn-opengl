@@ -1,7 +1,7 @@
 /**
- * @file gl_error_checker.h
+ * @file gl_utility.h
  * @author ja50n (zs_feng@qq.com)
- * @brief OpenGL error checker
+ * @brief OpenGL utility functions
  * @version 0.1
  * @date 2022-08-17
  *
@@ -55,3 +55,37 @@ void LOG_(const char* file, int line, const char* prompt, const char* content) {
   std::cerr << file << "(" << line << "): " << prompt  << " " << content << std::endl;
 }
 #define LOG(prompt, content) LOG_(__FILE__, __LINE__, prompt, content)
+
+unsigned int loadTexture(char const *path) {
+  unsigned int textureID;
+  glGenTextures(1, &textureID);
+
+  int width, height, nrComponents;
+  unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+  if (data) {
+    GLenum format;
+    if (nrComponents == 1)
+      format = GL_RED;
+    else if (nrComponents == 3)
+      format = GL_RGB;
+    else if (nrComponents == 4)
+      format = GL_RGBA;
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+                 GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_image_free(data);
+  } else {
+    LOG("loadTexture: Texture failed to load at path:", path);
+    stbi_image_free(data);
+  }
+  return textureID;
+}

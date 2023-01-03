@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "learn-opengl/logger.h"
+#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
 using namespace std;
 // Vertex shader src
