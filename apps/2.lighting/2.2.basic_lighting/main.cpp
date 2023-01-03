@@ -7,7 +7,6 @@
 
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
-#include "learn-opengl/texture.h"
 #include "learn-opengl/camera.h"
 #include "stb_image.h"
 
