@@ -12,6 +12,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <iostream>
+#include "stb_image.h"
 /**
  * @brief Check if gl call causes error
  * @note NEVER call this before glfwInit()
@@ -56,7 +57,7 @@ void LOG_(const char* file, int line, const char* prompt, const char* content) {
 }
 #define LOG(prompt, content) LOG_(__FILE__, __LINE__, prompt, content)
 
-unsigned int loadTexture(char const *path) {
+unsigned int load_texture(char const *path) {
   unsigned int textureID;
   glGenTextures(1, &textureID);
 

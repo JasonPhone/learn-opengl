@@ -3,7 +3,7 @@
 #include <string>
 #include "learn-opengl/model.h"
 #include "learn-opengl/shader.h"
-#include "learn-opengl/logger.h"
+#include "learn-opengl/gl_utility.h"
 #include "stb_image.h"
 
 static unsigned int texture_from_file(const char *path,
