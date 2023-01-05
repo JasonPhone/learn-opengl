@@ -8,6 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
 # set(CMAKE_BUILD_RPATH ${CMAKE_SOURCE_DIR}/bin/)
 # set(CMAKE_INSTALL_RPATH ${CMAKE_SOURCE_DIR}/bin/)
 
+# Assimp
 set(3DPARTY_FOLDER ./extern)
 include(FetchContent)
 Set(FETCHCONTENT_QUIET FALSE)
@@ -34,15 +35,16 @@ if(NOT TARGET assimp)
 
   set_target_properties(assimp PROPERTIES DEBUG_POSTFIX "_debug")
   set_target_properties(assimp PROPERTIES RELEASE_POSTFIX "_release")
-
 endif()
-find_package(OpenGL REQUIRED)
+
+# OpenGL
+# find_package(OpenGL REQUIRED)
+
 include_directories(
   ./extern
   ./include
   ./src
 )
 
-add_subdirectory(./apps)
-
 add_subdirectory(./src)
+add_subdirectory(./apps)
