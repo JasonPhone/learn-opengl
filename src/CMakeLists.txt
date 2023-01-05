@@ -1,10 +1,11 @@
 set(HEADER_DIR "${CMAKE_SOURCE_DIR}/include")
 
-
 add_library(shader
   STATIC
+  # SHARED
   ${HEADER_DIR}/learn-opengl/shader.h
   ./learn-opengl/shader.cpp
+  # ./glad.c
 )
 
 add_library(stb_image
