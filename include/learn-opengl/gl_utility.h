@@ -56,7 +56,7 @@ void LOG_(const char* file, int line, const char* prompt, const char* content) {
   std::cerr << file << "(" << line << "): " << prompt << " " << content
             << std::endl;
 }
-#define LOG(prompt, content) LOG_(__FILE__, __LINE__, prompt, content)
+#define LOG std::cerr << __FILE__ << "(" << __LINE__ << ")"
 
 /**
  * @brief Load a texture from image using stb_image.
@@ -123,7 +123,7 @@ unsigned int load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
 
     stbi_image_free(data);
   } else {
-    LOG("loadTexture: Texture failed to load at path:", path);
+    LOG << "loadTexture: Texture failed to load at path:" << path;
     stbi_image_free(data);
   }
   return textureID;

@@ -173,7 +173,7 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene) {
 
 std::vector<Texture> Model::load_material_textures(
     aiMaterial *mat, aiTextureType tex_type, const std::string &type_name) {
-  LOG("Load textures begin", type_name.c_str());
+  LOG << "Load textures begin " << type_name.c_str();
   std::vector<Texture> textures;
   for (int i = 0; i < mat->GetTextureCount(tex_type); i++) {
     aiString str;
@@ -190,7 +190,7 @@ std::vector<Texture> Model::load_material_textures(
     if (b_tex_loaded == false) {
       Texture tex;
       // NOTE We suppose texture paths are all relative to model file.
-      LOG("Load texture", str.C_Str());
+      LOG << "Load texture " << str.C_Str();
       tex.id = texture_from_file(str.C_Str(), m_directory);
       tex.type = type_name;
       tex.path = str.C_Str();
