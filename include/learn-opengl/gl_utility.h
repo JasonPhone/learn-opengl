@@ -52,11 +52,13 @@ GLenum glCheckError_(const char* file, int line) {
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
-void LOG_(const char* file, int line, const char* prompt, const char* content) {
-  std::cerr << file << "(" << line << "): " << prompt << " " << content
-            << std::endl;
-}
+/**
+ * @brief Simple logger.
+ *
+ */
 #define LOG std::cerr << __FILE__ << "(" << __LINE__ << ")"
+
+constexpr int FLOAT_SIZE = sizeof(float);
 
 /**
  * @brief Load a texture from image using stb_image.
