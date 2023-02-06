@@ -11,6 +11,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <string>
+#include <vector>
 #include <iostream>
 #include "stb_image.h"
 /**
@@ -68,15 +69,15 @@ constexpr int FLOAT_SIZE = sizeof(float);
  * `CLAMP_TO_EDGE` and `GL_CLAMP_TO_BORDER`. `GL_REPEAT` by default.
  * @return unsigned int ID of texture.
  */
-unsigned int load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
-  unsigned int textureID;
-  glGenTextures(1, &textureID);
+GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
+  GLuint texture_id;
+  glGenTextures(1, &texture_id);
 
-  int width, height, nrComponents;
-  unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+  int img_w, img_h, img_channels;
+  unsigned char* data = stbi_load(path, &img_w, &img_h, &img_channels, 0);
   if (data) {
     GLenum format = GL_RED;
-    switch (nrComponents) {
+    switch (img_channels) {
       case 1: {
         format = GL_RED;
         break;
@@ -111,8 +112,8 @@ unsigned int load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
       }
     }
 
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, img_w, img_h, 0, format,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -125,8 +126,56 @@ unsigned int load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
 
     stbi_image_free(data);
   } else {
-    LOG << "loadTexture: Texture failed to load at path:" << path;
+    LOG << "load_texture: Failed to load texture at path: " << path;
     stbi_image_free(data);
   }
-  return textureID;
+  return texture_id;
+}
+
+/**
+ * @brief Load cubemap from image files.
+ *
+ * @param paths Vector storing paths to images.
+ * @return GLuint Cubemap ID.
+ */
+GLuint load_cubemap(std::vector<std::string> const& const paths) {
+  GLuint texture_id = 0;
+  glGenTextures(1, &texture_id);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+
+  int img_w, img_h, img_channels;
+  for (unsigned int i = 0; i < paths.size(); i++) {
+    unsigned char* data =
+        stbi_load(paths[i].c_str(), &img_w, &img_h, &img_channels, 0);
+    if (data) {
+      GLenum format = GL_RED;
+      switch (img_channels) {
+        case 1: {
+          format = GL_RED;
+          break;
+        }
+        case 3: {
+          format = GL_RGB;
+          break;
+        }
+        case 4: {
+          format = GL_RGBA;
+          break;
+        }
+      }
+      glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, img_w, img_h,
+                   0, format, GL_UNSIGNED_BYTE, data);
+    } else {
+      LOG << "load_cubemap: Fail to load cubemap at path " << paths[i]
+          << std::endl;
+    }
+    stbi_image_free(data);
+  }
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  return texture_id;
 }
