@@ -86,6 +86,16 @@ float plane_vertices[] = {
    5.0f, -0.51f, -5.0f,  2.0f, 2.0f,
   -5.0f, -0.51f, -5.0f,  0.0f, 2.0f
 };
+float quad_vertices[] = {
+  // positions   // texCoords
+  -1.0f,  1.0f,  0.0f, 1.0f,
+  -1.0f, -1.0f,  0.0f, 0.0f,
+   1.0f, -1.0f,  1.0f, 0.0f,
+
+  -1.0f,  1.0f,  0.0f, 1.0f,
+   1.0f, -1.0f,  1.0f, 0.0f,
+   1.0f,  1.0f,  1.0f, 1.0f
+};
 // clang-format on
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
   glViewport(0, 0, w, h);
@@ -131,7 +141,7 @@ int main() {
   GLFWwindow *window =
       glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {
-    std::cout << "Failed to create GLFW window" << std::endl;
+    LOG << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
     return -1;
   }
@@ -155,12 +165,14 @@ int main() {
   // Configure global opengl state
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
 
   // Build and compile shaders
   // -------------------------
+  Shader screen_shader("../shader/screen.vs", "../shader/screen.fs");
   Shader model_shader("../shader/model.vs", "../shader/model.fs");
 
+  // Objects
+  // -------
   // Cube objects
   GLuint cube_VAO, cube_VBO;
   glGenVertexArrays(1, &cube_VAO);
@@ -170,10 +182,10 @@ int main() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * FLOAT_SIZE, (void *)0);
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                        (void *)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * FLOAT_SIZE,
+                        (void *)(3 * FLOAT_SIZE));
   glBindVertexArray(0);
   // Plane objects
   GLuint plane_VAO, plane_VBO;
@@ -184,19 +196,77 @@ int main() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vertices), &plane_vertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * FLOAT_SIZE, (void *)0);
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                        (void *)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * FLOAT_SIZE,
+                        (void *)(3 * FLOAT_SIZE));
   glBindVertexArray(0);
+  // Quad objects
+  GLuint quad_VAO, quad_VBO;
+  glGenVertexArrays(1, &quad_VAO);
+  glGenBuffers(1, &quad_VBO);
+  glBindVertexArray(quad_VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, quad_VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), &quad_vertices,
+               GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * FLOAT_SIZE, (void *)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * FLOAT_SIZE,
+                        (void *)(2 * FLOAT_SIZE));
+  glBindVertexArray(0);
+
   // Texture
-  GLuint cube_texture = load_texture("../texture/marble.jpg");
+  // -------
+  GLuint cube_texture = load_texture("../texture/container.jpg");
   GLuint floor_texture = load_texture("../texture/metal.png");
+
+  screen_shader.use();
+  screen_shader.set_int("texture1", 0);
+  model_shader.use();
+  model_shader.set_int("texture1", 0);
+
+  // Custom framebuffer
+  // ------------------
+  // Color buffer
+  GLuint frame_buffer;
+  glGenFramebuffers(1, &frame_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+  // Generate texture for attachment
+  GLuint tex_colorbuffer;
+  glGenTextures(1, &tex_colorbuffer);
+  glBindTexture(GL_TEXTURE_2D, tex_colorbuffer);
+  glTexImage2D(GL_TEXTURE_2D,     // Target
+               0,                 // Level
+               GL_RGB,            // Internal format for OpenGL storage
+               SCR_WIDTH, SCR_HEIGHT,          // Width and height
+               0,                 // Border (always zero)
+               GL_RGB,            // Data format layout
+               GL_UNSIGNED_BYTE,  // Data format type
+               NULL               // Pointer to texture data
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  // Attach
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         tex_colorbuffer, 0);
+  // Depth and stencil buffer
+  GLuint render_buffer;
+  glGenRenderbuffers(1, &render_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+  // Attach
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, render_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+  // Check framebuffers
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    LOG << "::main(): Framebuffer is not complete!" << std::endl;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Render loop
   // -----------
-  model_shader.use();
-  model_shader.set_int("texture1", 0);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   while (!glfwWindowShouldClose(window)) {
     // Per-frame time logic
     // --------------------
@@ -211,40 +281,49 @@ int main() {
 
     // Render
     // ------
-    glClearColor(0.1, 0.1, 0.1, 1.0f);
-
-    // Use model shader
+    // Render on custom buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Draw models on custom buffer
     model_shader.use();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera.view_matrix();
-    glm::mat4 projection = glm::perspective(
-        glm::radians(camera.fov()), 1.0 * SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0);
+    glm::mat4 projection =
+        glm::perspective(glm::radians(float(camera.fov())),
+                         (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     model_shader.set_mat4fv("view", glm::value_ptr(view));
     model_shader.set_mat4fv("projection", glm::value_ptr(projection));
-
-    // Normal rendering
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+    // Cubes
+    glBindVertexArray(cube_VAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, cube_texture);
+    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+    model_shader.set_mat4fv("model", glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, -0.2f, 0.0f));
+    model_shader.set_mat4fv("model", glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, 36);
     // Floor
+    glBindVertexArray(plane_VAO);
     glBindTexture(GL_TEXTURE_2D, floor_texture);
     model_shader.set_mat4fv("model", glm::value_ptr(glm::mat4(1.0f)));
-    glBindVertexArray(plane_VAO);
-    glStencilMask(0x00);  // Forbid stencil updating of floor part
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
-    // Cubes
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, cube_texture);
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(-1.0f, -0.5f, -1.0f));
-    model_shader.set_mat4fv("model", glm::value_ptr(model));
-    glBindVertexArray(cube_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    model_shader.set_mat4fv("model", glm::value_ptr(model));
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    // Render on default buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);  // Only a quad, no depth required.
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    screen_shader.use();
+    glBindVertexArray(quad_VAO);
+    glBindTexture(GL_TEXTURE_2D, tex_colorbuffer);
+    // Sample from custom color buffer
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glfwSwapBuffers(window);
   }
