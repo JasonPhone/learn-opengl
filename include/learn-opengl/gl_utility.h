@@ -138,7 +138,7 @@ GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
  * @param paths Vector storing paths to images.
  * @return GLuint Cubemap ID.
  */
-GLuint load_cubemap(std::vector<std::string> const& const paths) {
+GLuint load_cubemap(std::vector<std::string> const& paths) {
   GLuint texture_id = 0;
   glGenTextures(1, &texture_id);
   glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
