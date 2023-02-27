@@ -14,6 +14,12 @@ add_library(stb_image
   stb_image.cpp
 )
 
+add_library(tiny_obj_loader
+  STATIC
+  ${HEADER_DIR}/tiny_obj_loader.h
+  tiny_obj_loader.cpp
+)
+
 add_library(camera
   STATIC
   ${HEADER_DIR}/learn-opengl/camera.h
