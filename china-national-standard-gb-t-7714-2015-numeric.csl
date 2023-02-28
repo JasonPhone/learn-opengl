@@ -322,12 +322,12 @@
     </group>
   </macro>
   <!-- 获取和访问路径以及 DOI -->
-  <!-- <macro name="url-doi">
-    <group delimiter=". ">
+  <macro name="url-doi">
+    <!-- <group delimiter=". ">
       <text variable="URL"/>
       <text variable="DOI" prefix="DOI:"/>
-    </group>
-  </macro> -->
+    </group> -->
+  </macro>
   <!-- 连续出版物的年卷期 -->
   <macro name="year-volume-issue">
     <group>
