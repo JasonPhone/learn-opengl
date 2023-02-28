@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" version="1.0" class="in-text" names-delimiter=". " name-as-sort-order="all" sort-separator=" " demote-non-dropping-particle="never" initialize-with=" " initialize-with-hyphen="false" page-range-format="expanded" default-locale="zh-CN">
   <info>
-    <title>GB/T 7714-2015 (numeric, 中文)</title>
+    <title>GB/T 7714-2015 (numeric, 中文, no URL/DOI)</title>
     <id>modified_by_jason</id>
     <!-- <link href="http://www.zotero.org/styles/china-national-standard-gb-t-7714-2015-numeric" rel="self"/> -->
     <!-- <link href="http://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D8055ED3A7E05397BE0A0AB82A" rel="documentation"/> -->
@@ -313,20 +313,21 @@
           <text value="Z"/>
         </else>
       </choose>
-      <choose>
+      <!-- Add /OL -->
+      <!-- <choose>
         <if variable="URL DOI" match="any">
           <text value="OL"/>
         </if>
-      </choose>
+      </choose> -->
     </group>
   </macro>
   <!-- 获取和访问路径以及 DOI -->
-  <macro name="url-doi">
+  <!-- <macro name="url-doi">
     <group delimiter=". ">
       <text variable="URL"/>
       <text variable="DOI" prefix="DOI:"/>
     </group>
-  </macro>
+  </macro> -->
   <!-- 连续出版物的年卷期 -->
   <macro name="year-volume-issue">
     <group>
