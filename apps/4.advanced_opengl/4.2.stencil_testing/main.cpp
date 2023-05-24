@@ -1,4 +1,5 @@
 #include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -8,7 +9,6 @@
 #include "learn-opengl/shader.h"
 #include "learn-opengl/camera.h"
 #include "learn-opengl/gl_utility.h"
-#include "stb_image.h"
 
 #include <iostream>
 

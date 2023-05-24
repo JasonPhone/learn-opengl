@@ -1,4 +1,5 @@
 #include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,7 +8,6 @@
 
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
-#include "stb_image.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;

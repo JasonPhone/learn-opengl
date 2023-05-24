@@ -1,5 +1,7 @@
 #include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -7,7 +9,7 @@
 
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
-#include "stb_image.h"
+
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
   glViewport(0, 0, w, h);
 }
@@ -185,7 +187,6 @@ int main() {
 
     /****** Logic ******/
     glfwPollEvents();
-
 
     /****** Render ******/
     glActiveTexture(GL_TEXTURE0);

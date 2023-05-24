@@ -1,17 +1,18 @@
-#include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
 
+#include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 
-#include "learn-opengl/shader.h"
 #include "learn-opengl/camera.h"
 #include "learn-opengl/model.h"
-#include "stb_image.h"
+#include "learn-opengl/shader.h"
+#include "learn-opengl/gl_utility.h"
 
-#include <iostream>
-#include <filesystem>
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -26,7 +27,7 @@ float last_x = SCR_WIDTH / 2.0f;
 float last_y = SCR_HEIGHT / 2.0f;
 bool first_mouse = true;
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -34,7 +35,6 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = camera.move_speed() * delta_time;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::FORWARD, delta_time);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -48,15 +48,17 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
 }
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
 }
 
-void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double , double yoffset) {
   camera.zoom(yoffset);
 }
 
 int main() {
+  TestLoadObj("../model/nanosuit/nanosuit.obj", "../model/nanosuit/");
+  return 0;
   // glfw: initialize and configure
   // ------------------------------
   glfwInit();
@@ -152,7 +154,8 @@ int main() {
                   1.0f));  // it's a bit too big for our scene, so scale it down
     model_shader.set_mat4fv("model", glm::value_ptr(model));
 
-    model_shader.set_vec3fv("view_pos", glm::value_ptr(camera.camera_position()));
+    model_shader.set_vec3fv("view_pos",
+                            glm::value_ptr(camera.camera_position()));
     // Light
     float time = glfwGetTime();
     float x = sin(time) * 10;

@@ -1,10 +1,11 @@
-#include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
+
 #include <iostream>
 
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
-#include "stb_image.h"
 void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
   glViewport(0, 0, w, h);
 }
@@ -66,10 +67,10 @@ int main() {
   if (image) {
     // transfer texture data
     glTexImage2D(GL_TEXTURE_2D,  // texture type
-                 0,       // level if this texture is to be part of mipmap
+                 0,        // level if this texture is to be part of mipmap
                  GL_RGBA,  // format to store texture
                  image_w, image_h,  // just as is
-                 0,       // border, should always be zero for legacy reason
+                 0,        // border, should always be zero for legacy reason
                  GL_RGBA,  // format of input data
                  GL_UNSIGNED_BYTE,  // data layout
                  image              // data

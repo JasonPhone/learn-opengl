@@ -12,5 +12,4 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   "${CMAKE_SOURCE_DIR}/lib/libglfw3.a"
   shader
-  stb_image
 )

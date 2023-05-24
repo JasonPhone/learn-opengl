@@ -5,37 +5,39 @@ project(learn-opengl)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ${CMAKE_SOURCE_DIR}/)
 # set(CMAKE_BUILD_RPATH ${CMAKE_SOURCE_DIR}/bin/)
 # set(CMAKE_INSTALL_RPATH ${CMAKE_SOURCE_DIR}/bin/)
 
 # Assimp
-set(3DPARTY_FOLDER ./extern)
-include(FetchContent)
-Set(FETCHCONTENT_QUIET FALSE)
-if(NOT TARGET assimp)
-  message(STATUS "============start config assimp============")
-  FetchContent_Declare(
-    assimp
-    GIT_REPOSITORY https://gitclone.com/github.com/assimp/assimp.git
-    GIT_TAG v5.2.5
+# set(3DPARTY_FOLDER ./extern)
+# include(FetchContent)
+# Set(FETCHCONTENT_QUIET FALSE)
+# if(NOT TARGET assimp)
+#   message(STATUS "============start config assimp============")
+#   FetchContent_Declare(
+#     assimp
+#     GIT_REPOSITORY https://gitclone.com/github.com/assimp/assimp.git
+#     GIT_TAG v5.2.5
 
-    GIT_PROGRESS TRUE
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/extern/assimp
-  )
+#     GIT_PROGRESS TRUE
+#     SOURCE_DIR ${CMAKE_SOURCE_DIR}/extern/assimp
+#   )
 
-  set(ASSIMP_FOLDER ${3DPARTY_FOLDER}/assimp)
-  set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE INTERNAL "")
-  set(ASSIMP_DOUBLE_PRECISION ON CACHE INTERNAL "")
-  set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE INTERNAL "")
-  set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE INTERNAL "")
-  set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "")
-  set(ASSIMP_INSTALL OFF CACHE INTERNAL "")
+#   set(ASSIMP_FOLDER ${3DPARTY_FOLDER}/assimp)
+#   set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE INTERNAL "")
+#   set(ASSIMP_DOUBLE_PRECISION ON CACHE INTERNAL "")
+#   set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE INTERNAL "")
+#   set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE INTERNAL "")
+#   set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "")
+#   set(ASSIMP_INSTALL OFF CACHE INTERNAL "")
 
-  FetchContent_MakeAvailable(assimp)
+#   FetchContent_MakeAvailable(assimp)
 
-  set_target_properties(assimp PROPERTIES DEBUG_POSTFIX "_debug")
-  set_target_properties(assimp PROPERTIES RELEASE_POSTFIX "_release")
-endif()
+#   set_target_properties(assimp PROPERTIES DEBUG_POSTFIX "_debug")
+#   set_target_properties(assimp PROPERTIES RELEASE_POSTFIX "_release")
+# endif()
 
 # OpenGL
 # find_package(OpenGL REQUIRED)

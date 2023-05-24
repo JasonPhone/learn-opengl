@@ -1,9 +1,12 @@
-#include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
+
 #include <iostream>
 
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
+
 using namespace std;
 // Vertex shader src
 void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
