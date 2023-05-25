@@ -1,3 +1,4 @@
+#include <string>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -11,8 +12,6 @@
 #include "learn-opengl/camera.h"
 #include "learn-opengl/model.h"
 #include "learn-opengl/shader.h"
-#include "learn-opengl/gl_utility.h"
-
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -35,6 +34,7 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
+  camera.set_move_speed(2.5);
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::FORWARD, delta_time);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -49,16 +49,14 @@ void process_input(GLFWwindow *window) {
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
 }
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
-  camera.turn(xpos, ypos);
+  camera.turn(xpos * 1.5, ypos * 1.5);
 }
 
-void mouse_scroll_callback(GLFWwindow *, double , double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
   camera.zoom(yoffset);
 }
 
 int main() {
-  TestLoadObj("../model/nanosuit/nanosuit.obj", "../model/nanosuit/");
-  return 0;
   // glfw: initialize and configure
   // ------------------------------
   glfwInit();
@@ -92,9 +90,6 @@ int main() {
     return -1;
   }
 
-  // tell stb_image.h to flip loaded texture's on the y-axis (before loading
-  // model).
-  stbi_set_flip_vertically_on_load(true);
 
   // configure global opengl state
   // -----------------------------
@@ -107,7 +102,9 @@ int main() {
 
   // load models
   // -----------
-  Model ai_model("../model/nanosuit/nanosuit.obj");
+  // Model ai_model("../models/cube/cube.obj");
+  Model ai_model("../models/nanosuit/nanosuit.obj");
+  
 
   // draw in wireframe
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
