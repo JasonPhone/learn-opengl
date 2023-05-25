@@ -9,12 +9,12 @@
 #pragma once
 
 #include <glad/glad.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#define STB_IMAGE_IMPLEMENTATION
+#include <cassert>
+
 #include "stb_image.h"
 /**
  * @brief Check if gl call causes error
@@ -24,7 +24,7 @@
  * @param line line number where this check is called
  * @return GLenum error code
  */
-GLenum glCheckError_(const char* file, int line) {
+inline GLenum glCheckError_(const char* file, int line) {
   GLenum errorCode;
   while ((errorCode = glGetError()) != GL_NO_ERROR) {
     // clang-format off
@@ -55,11 +55,12 @@ GLenum glCheckError_(const char* file, int line) {
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
-/**
- * @brief Simple logger.
- *
- */
-#define LOG std::cerr << __FILE__ << "(" << __LINE__ << ")"
+#define ASSERT(x) assert((x))
+#define PEEK(x) std::cout << #x << ": " << x << "\n"
+#define DEBUG std::cout
+#define LOG std::cout
+#define WARN std::cout << __FILE__ << ":" << __LINE__ << "\n  Warn: "
+#define ERR std::cerr << __FILE__ << ":" << __LINE__ << "\n  Error: "
 
 constexpr int FLOAT_SIZE = sizeof(float);
 
@@ -71,7 +72,7 @@ constexpr int FLOAT_SIZE = sizeof(float);
  * `CLAMP_TO_EDGE` and `GL_CLAMP_TO_BORDER`. `GL_REPEAT` by default.
  * @return unsigned int ID of texture.
  */
-GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
+inline GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
   GLuint texture_id;
   glGenTextures(1, &texture_id);
 
@@ -140,7 +141,7 @@ GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
  * @param paths Vector storing paths to images.
  * @return GLuint Cubemap ID.
  */
-GLuint load_cubemap(std::vector<std::string> const& paths) {
+inline GLuint load_cubemap(std::vector<std::string> const& paths) {
   GLuint texture_id = 0;
   glGenTextures(1, &texture_id);
   glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
