@@ -1,18 +1,21 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <map>
+#include <vector>
 
-#include "learn-opengl/shader.h"
+#include "ImGui/backend/imgui_impl_glfw.h"
+#include "ImGui/backend/imgui_impl_opengl3.h"
+#include "ImGui/imgui.h"
 #include "learn-opengl/camera.h"
 #include "learn-opengl/gl_utility.h"
-
-#include <iostream>
-#include <vector>
-#include <map>
+#include "learn-opengl/shader.h"
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 800;
@@ -180,6 +183,19 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
+  // Setup Dear ImGui context
+  printf("imgui context\n");
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+  printf("binding\n");
+  // Setup Platform/Renderer bindings
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  const char *glsl_version = "#version 330";
+  ImGui_ImplOpenGL3_Init(glsl_version);
 
   // stbi_set_flip_vertically_on_load(true);
 
@@ -254,7 +270,17 @@ int main() {
     // -----
     process_input(window);
     glfwPollEvents();
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    {
+      ImGui::Begin("Panel");
 
+      ImGui::Text("%.3f ms/frame (%.1f FPS)",
+                  1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      ImGui::End();
+    }
     // Render
     // ------
     glClearColor(0.1f, 0.1f, 0.1f, 1.0);
@@ -269,7 +295,8 @@ int main() {
     model_shader.use();
     model_shader.set_mat4fv("view", glm::value_ptr(view));
     model_shader.set_mat4fv("projection", glm::value_ptr(projection));
-    model_shader.set_vec3fv("camera_pos", glm::value_ptr(camera.camera_position()));
+    model_shader.set_vec3fv("camera_pos",
+                            glm::value_ptr(camera.camera_position()));
     glBindVertexArray(cube_VAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, model_diffuse);
@@ -290,14 +317,23 @@ int main() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
     skybox_shader.use();
-    skybox_shader.set_mat4fv("view", glm::value_ptr(glm::mat4(glm::mat3(camera.view_matrix()))));
+    skybox_shader.set_mat4fv(
+        "view", glm::value_ptr(glm::mat4(glm::mat3(camera.view_matrix()))));
     skybox_shader.set_mat4fv("projection", glm::value_ptr(projection));
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthFunc(GL_LESS);
 
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
   }
 
+  printf("clean\n");
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+
+  glfwDestroyWindow(window);
   glfwTerminate();
   return 0;
 }
