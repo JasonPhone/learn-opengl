@@ -201,14 +201,15 @@ int main() {
     shader.set_mat4fv("view", glm::value_ptr(view));
     shader.set_mat4fv("model", glm::value_ptr(model));
     shader.set_float("time", explode_shift);
-    nanosuit.draw(shader);
-    // cube.draw(shader);
+    // nanosuit.draw(shader);
+    cube.draw(shader);
 
     // shader_normal.use();
     // shader_normal.set_mat4fv("projection", glm::value_ptr(projection));
     // shader_normal.set_mat4fv("view", glm::value_ptr(view));
     // shader_normal.set_mat4fv("model", glm::value_ptr(model));
     // nanosuit.draw(shader_normal);
+    // cube.draw(shader_normal);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();
