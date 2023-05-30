@@ -127,8 +127,12 @@ int main() {
   // -------------------------
   // Shader shader("../shader/house.vert", "../shader/house.geom",
   //               "../shader/house.frag");
-  Shader shader("../shader/explode.vert", "../shader/explode.geom",
-                "../shader/explode.frag");
+  // Shader shader("../shader/explode.vert", "../shader/explode.geom",
+  //               "../shader/explode.frag");
+  Shader shader("../shader/draw.vert", "../shader/draw.frag");
+  Shader shader_normal("../shader/draw_normal.vert",
+                       "../shader/draw_normal.geom",
+                       "../shader/draw_normal.frag");
   // Model.
   Model nanosuit = Model{"../models/nanosuit/nanosuit.obj"};
   // Objects
@@ -190,17 +194,19 @@ int main() {
         glm::perspective(glm::radians(45.0f),
                          (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 1000.0f);
     glm::mat4 view = camera.view_matrix();
-    ;
     glm::mat4 model = glm::mat4(1.0f);
     shader.use();
     shader.set_mat4fv("projection", glm::value_ptr(projection));
     shader.set_mat4fv("view", glm::value_ptr(view));
     shader.set_mat4fv("model", glm::value_ptr(model));
-    // add time component to geometry shader in the form of a uniform
-    shader.set_float("time", explode_shift);
-    // Draw
-    shader.use();
+    // shader.set_float("time", explode_shift);
     nanosuit.draw(shader);
+
+    shader_normal.use();
+    shader_normal.set_mat4fv("projection", glm::value_ptr(projection));
+    shader_normal.set_mat4fv("view", glm::value_ptr(view));
+    shader_normal.set_mat4fv("model", glm::value_ptr(model));
+    nanosuit.draw(shader_normal);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();
