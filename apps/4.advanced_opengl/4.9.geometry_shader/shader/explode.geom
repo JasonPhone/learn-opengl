@@ -8,6 +8,7 @@ gs_in[];
 out vec2 TexCoords;
 
 uniform float time;
+uniform mat4 projection;
 
 vec4 explode(vec4 position, vec3 normal) {
   float magnitude = 2.0;
@@ -23,6 +24,7 @@ vec3 GetNormal() {
 
 void main() {
   vec3 normal = GetNormal();
+  normal = mat3(transpose(inverse(projection))) * normal;
 
   gl_Position = explode(gl_in[0].gl_Position, normal);
   TexCoords = gs_in[0].texCoords;
