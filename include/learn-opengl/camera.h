@@ -51,6 +51,26 @@ class Camera {
    * @param ypos Current Y position of cursor.
    */
   void turn(double xpos, double ypos);
+  void turn_delta(double xoffset, double yoffset) {
+    yoffset = -yoffset;
+
+    float sensitivity = turn_sensitivity();
+    m_camera_pitch += sensitivity * yoffset;
+    m_camera_yaw += sensitivity * xoffset;
+
+    // Restrict the pitch range
+    m_camera_pitch = glm::clamp(m_camera_pitch, -89.9, 89.9);
+
+    glm::vec3 front;
+    front.x =
+        cos(glm::radians(m_camera_pitch)) * sin(glm::radians(m_camera_yaw));
+    front.y = sin(glm::radians(m_camera_pitch));
+    front.z =
+        -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
+
+    m_camera_front = front;
+    m_camera_right = glm::normalize(glm::cross(m_camera_front, m_camera_up));
+  }
   /**
    * @brief Camera zoom in-out.
    *

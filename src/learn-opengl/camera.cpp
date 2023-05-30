@@ -3,10 +3,10 @@
 
 Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, double pitch,
                double yaw)
-    : m_camera_pos{pos},
-      m_camera_front{glm::normalize(front)},
-      m_camera_pitch{pitch},
-      m_camera_yaw{yaw} {
+    : m_camera_pitch{pitch},
+      m_camera_yaw{yaw},
+      m_camera_pos{pos},
+      m_camera_front{glm::normalize(front)} {
   // In case camera up is not perpendicular with look direction
   m_camera_right = glm::normalize(glm::cross(front, up));
   m_camera_up = glm::normalize(glm::cross(m_camera_right, m_camera_front));
@@ -17,26 +17,26 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, double pitch,
   m_turn_sensitivity = 0.05;
 }
 
-void Camera::move(MOVE_DIRECTION dir, double delta_time) {
+void Camera::move(MOVE_DIRECTION direction_flag, double delta_time) {
   float distance = m_move_speed * delta_time;
-  if (dir == MOVE_DIRECTION::FORWARD) {
+  if (direction_flag == MOVE_DIRECTION::FORWARD) {
     glm::vec3 dir = glm::normalize(glm::cross(m_camera_up, m_camera_right));
     m_camera_pos += dir * distance;
   }
-  if (dir == MOVE_DIRECTION::BACKWARD) {
+  if (direction_flag == MOVE_DIRECTION::BACKWARD) {
     glm::vec3 dir = glm::normalize(glm::cross(m_camera_right, m_camera_up));
     m_camera_pos += dir * distance;
   }
-  if (dir == MOVE_DIRECTION::UP) {
+  if (direction_flag == MOVE_DIRECTION::UP) {
     m_camera_pos += m_camera_up * distance;
   }
-  if (dir == MOVE_DIRECTION::DOWN) {
+  if (direction_flag == MOVE_DIRECTION::DOWN) {
     m_camera_pos += -m_camera_up * distance;
   }
-  if (dir == MOVE_DIRECTION::RIGHT) {
+  if (direction_flag == MOVE_DIRECTION::RIGHT) {
     m_camera_pos += m_camera_right * distance;
   }
-  if (dir == MOVE_DIRECTION::LEFT) {
+  if (direction_flag == MOVE_DIRECTION::LEFT) {
     m_camera_pos += -m_camera_right * distance;
   }
 }
