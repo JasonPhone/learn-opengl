@@ -14,10 +14,11 @@
 #include "ImGui/imgui.h"
 #include "learn-opengl/camera.h"
 #include "learn-opengl/gl_utility.h"
+#include "learn-opengl/model.h"
 #include "learn-opengl/shader.h"
 
 // Settings
-constexpr unsigned int SCR_WIDTH = 800;
+constexpr unsigned int SCR_WIDTH = 900;
 constexpr unsigned int SCR_HEIGHT = 600;
 // Timing
 float delta_time = 0.0f;
@@ -25,9 +26,6 @@ float last_frame = 0.0f;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
-float last_x = SCR_WIDTH / 2.0f;
-float last_y = SCR_HEIGHT / 2.0f;
-bool first_mouse = true;
 
 // Vertices
 // clang-format off
@@ -41,6 +39,12 @@ float points[] = {
 // clang-format on
 void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
+}
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
+  camera.turn(xpos * 1.5, ypos * 1.5);
+}
+void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
+  camera.zoom(yoffset);
 }
 void process_input(GLFWwindow *window) {
   // Close window on Esc pressed
@@ -59,12 +63,11 @@ void process_input(GLFWwindow *window) {
     camera.move(MOVE_DIRECTION::UP, delta_time);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
-}
-void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
-  camera.turn(xpos * 1.5, ypos * 1.5);
-}
-void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
-  camera.zoom(yoffset);
+  // Camera turn.
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turn_delta(0, -2);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turn_delta(0, 2);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turn_delta(-2, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turn_delta(2, 0);
 }
 
 int main() {
@@ -88,7 +91,7 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_move_callback);
+  // glfwSetCursorPosCallback(window, mouse_move_callback);
   glfwSetScrollCallback(window, mouse_scroll_callback);
 
   // Capture mouse
@@ -118,12 +121,16 @@ int main() {
 
   // Configure global opengl state
   // -----------------------------
-  // glEnable(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_TEST);
 
   // Build and compile shaders
   // -------------------------
-  Shader shader("../shader/house.vert", "../shader/house.geom",
-                "../shader/house.frag");
+  // Shader shader("../shader/house.vert", "../shader/house.geom",
+  //               "../shader/house.frag");
+  Shader shader("../shader/explode.vert", "../shader/explode.geom",
+                "../shader/explode.frag");
+  // Model.
+  Model nanosuit = Model{"../models/nanosuit/nanosuit.obj"};
   // Objects
   // -------
   // Cube objects
@@ -147,6 +154,7 @@ int main() {
   // Render loop
   // -----------
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  float explode_shift = 0;
   while (!glfwWindowShouldClose(window)) {
     // Per-frame time logic
     // --------------------
@@ -166,21 +174,33 @@ int main() {
 
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+      ImGui::NewLine();
+      ImGui::SliderFloat("explode distance", &explode_shift, -1, 1);
+
       ImGui::End();
     }
 
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Render
     // ------
-    glClearColor(0.3f, 0.3f, 0.3f, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    // Draw models on custom buffer
-    // glm::mat4 model = glm::mat4(1.0f);
-    // glm::mat4 view = camera.view_matrix();
 
+    glm::mat4 projection =
+        glm::perspective(glm::radians(45.0f),
+                         (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 1000.0f);
+    glm::mat4 view = camera.view_matrix();
+    ;
+    glm::mat4 model = glm::mat4(1.0f);
+    shader.use();
+    shader.set_mat4fv("projection", glm::value_ptr(projection));
+    shader.set_mat4fv("view", glm::value_ptr(view));
+    shader.set_mat4fv("model", glm::value_ptr(model));
+    // add time component to geometry shader in the form of a uniform
+    shader.set_float("time", explode_shift);
     // Draw
     shader.use();
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, 4);
+    nanosuit.draw(shader);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();

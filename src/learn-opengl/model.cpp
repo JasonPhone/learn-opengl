@@ -115,11 +115,11 @@ static void processModel(const tinyobj::attrib_t &attrib,
   LOG << "Loading materials.\n";
   for (size_t idxMat = 0; idxMat < materials.size(); idxMat++) {
     std::vector<Texture> textures;
-    LOG << "Material name " << materials[idxMat].name << std::endl;
+    LOG << "Material name " << materials[idxMat].name << ": ";
     Texture tex;
     // Diffuse.
     if (!materials[idxMat].diffuse_texname.empty()) {
-      LOG << "diffuse\n";
+      LOG << "diffuse ";
       tex.id = textureFromFile(materials[idxMat].diffuse_texname, dir);
       tex.type = "texture_diffuse";
       tex.path = materials[idxMat].diffuse_texname;
@@ -127,7 +127,7 @@ static void processModel(const tinyobj::attrib_t &attrib,
     }
     // Specular.
     if (!materials[idxMat].specular_texname.empty()) {
-      LOG << "specular\n";
+      LOG << "specular ";
       tex.id = textureFromFile(materials[idxMat].specular_texname, dir);
       tex.type = "texture_specular";
       tex.path = materials[idxMat].specular_texname;
@@ -135,13 +135,14 @@ static void processModel(const tinyobj::attrib_t &attrib,
     }
     // Normal.
     if (!materials[idxMat].bump_texname.empty()) {
-      LOG << "normal\n";
+      LOG << "normal ";
       tex.id = textureFromFile(materials[idxMat].bump_texname, dir);
       tex.type = "texture_normal";
       tex.path = materials[idxMat].bump_texname;
       textures.push_back(tex);
     }
     globalTextures.push_back(textures);
+    LOG << "\n";
   }
 
   for (size_t i = 0; i < shapes.size(); i++) {
