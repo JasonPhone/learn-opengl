@@ -1,14 +1,16 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#include "learn-opengl/camera.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/shader.h"
-#include "learn-opengl/camera.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
@@ -227,15 +229,16 @@ int main() {
     /****** Render ******/
     glClearColor(0.1, 0.1, 0.1, 1.0);  // rgba, used to clear viewport
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glm:: mat4 view{1}, proj{1}, model{1};
+    glm::mat4 view{1}, proj{1}, model{1};
     // Cube
     for (int i = 0; i < 10; i++) {
       model = glm::mat4{1};
       view = cam.view_matrix();
-      proj = glm::perspective(glm::radians(cam.fov()),
-                                        1.0 * SCR_W / SCR_H, 0.1, 100.0);
+      proj = glm::perspective(glm::radians(cam.fov()), 1.0 * SCR_W / SCR_H, 0.1,
+                              100.0);
       model = glm::translate(model, cube_pos[i]);
-      model = glm::rotate(model, glm::radians(time) * (10 + i), glm::vec3(0, 1, 0));
+      model =
+          glm::rotate(model, glm::radians(time) * (10 + i), glm::vec3(0, 1, 0));
       glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
       shader_cube.use();
       shader_cube.set_mat4fv("view", glm::value_ptr(view));
@@ -246,8 +249,11 @@ int main() {
 
       shader_cube.set_float("mat.shininess", 64.0f);
 
-      shader_cube.set_vec3fv("lit.position", glm::value_ptr(cam.camera_position() + glm::vec3(0, -0.5, 0)));
-      shader_cube.set_vec3fv("lit.direction", glm::value_ptr(cam.camera_front()));
+      shader_cube.set_vec3fv(
+          "lit.position",
+          glm::value_ptr(cam.camera_position() + glm::vec3(0, -0.5, 0)));
+      shader_cube.set_vec3fv("lit.direction",
+                             glm::value_ptr(cam.camera_front()));
       shader_cube.set_vec3f("lit.ambient", 0.2f, 0.2f, 0.2f);
       shader_cube.set_vec3f("lit.diffuse", 0.5f, 0.5f, 0.5f);
       shader_cube.set_vec3f("lit.specular", 1.0f, 1.0f, 1.0f);
