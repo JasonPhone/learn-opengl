@@ -109,6 +109,12 @@ void Shader::set_bool(char const* uniform_name, bool value) const {
 void Shader::set_float(char const* uniform_name, float value) const {
   glUniform1f(glGetUniformLocation(ID, uniform_name), value);
 }
+void Shader::set_vec2f(char const* uniform_name, float x, float y) const {
+  glUniform2f(glGetUniformLocation(ID, uniform_name), x, y);
+}
+void Shader::set_vec2fv(char const* uniform_name, GLfloat const* ptr) const {
+  glUniform2fv(glGetUniformLocation(ID, uniform_name), 1, ptr);
+}
 void Shader::set_vec3f(char const* uniform_name, float x, float y,
                        float z) const {
   glUniform3f(glGetUniformLocation(ID, uniform_name), x, y, z);

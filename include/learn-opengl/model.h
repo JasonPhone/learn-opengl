@@ -38,14 +38,15 @@ class Mesh {
   }
   /// @brief Draw the mesh using provided shader.
   void draw(const Shader& shader);
+  void drawInstanced(const Shader& shader, const int instancedNum);
 
   std::vector<Vertex> mVertices;
   std::vector<unsigned int> mIndices;
   std::vector<Texture> mTextures;
-
- private:
   /// @brief Obj and buffers to draw this mesh.
   unsigned int mVAO, mVBO, mEBO;
+
+ private:
   /// @brief Setup mesh object and fill the buffer obj and array obj.
   void setup_mesh();
 };
@@ -57,6 +58,9 @@ class Model {
   void draw(const Shader& shader) {
     for (auto&& mesh : mMeshes) mesh.draw(shader);
   }
+  void drawInstanced(const Shader& shader, const int instanceNum) {
+    for (auto&& mesh : mMeshes) mesh.drawInstanced(shader, instanceNum);
+  }
 
  private:
   void load_model(const std::string& path, bool triangulate = true);
@@ -66,6 +70,7 @@ class Model {
   //                                             aiTextureType tex_type,
   //                                             const std::string &type_name);
 
+ public:
   std::vector<Mesh> mMeshes;
   std::vector<Texture> mLoadedTexture;
   /// @brief Path without filename.

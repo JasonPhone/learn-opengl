@@ -28,30 +28,15 @@ class Shader {
   /// @param v_shader_path path to vertex shader
   /// @param g_shader_path path to geometry shader
   /// @param f_shader_path path to fragment shader
-  Shader(char const *v_shader_path, char const *g_shader_path, char const *f_shader_path);
+  Shader(char const *v_shader_path, char const *g_shader_path,
+         char const *f_shader_path);
   /// @brief use this program in context
   void use() const;
-  ///  @brief Set the value of an existing int uniform
-  ///
-  ///  @param uniform_name name of this uniform
-  ///  @param value value to set
   void set_int(char const *uniform_name, int value) const;
-  /// @brief Set the value of an existing bool uniform
-  ///
-  /// @param uniform_name name of this uniform
-  /// @param value value to set
   void set_bool(char const *uniform_name, bool value) const;
-  /// @brief Set the value of an existing float uniform
-  ///
-  /// @param uniform_name name of this uniform
-  /// @param value value to set
   void set_float(char const *uniform_name, float value) const;
-  /// @brief Set the value of an existing vec3 uniform
-  ///
-  /// @param uniform_name Name of this uniform
-  /// @param x Value x
-  /// @param y Value y
-  /// @param z Value z
+  void set_vec2f(char const *uniform_name, float x, float y) const;
+  void set_vec2fv(char const *uniform_name, GLfloat const *ptr) const;
   void set_vec3f(char const *uniform_name, float x, float y, float z) const;
   void set_vec3fv(char const *uniform_name, GLfloat const *ptr) const;
   /// @brief Set the value of an existing matrix4 uniform
