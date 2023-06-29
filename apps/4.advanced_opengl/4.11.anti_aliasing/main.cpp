@@ -77,7 +77,7 @@ float last_frame = 0;
   };
 // clang-format on
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -103,11 +103,11 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turn_delta(-2, 0);
   if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turn_delta(2, 0);
 }
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
 }
 
-void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
   camera.zoom(yoffset);
 }
 
@@ -120,6 +120,9 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);  // OpenGL x.3
   glfwWindowHint(GLFW_OPENGL_PROFILE,
                  GLFW_OPENGL_CORE_PROFILE);  // use core profile
+
+  // Enable MSAA.
+  glfwWindowHint(GLFW_SAMPLES, 4);
   // Get the glfw window
   GLFWwindow *window =
       glfwCreateWindow(SCR_W, SCR_H, "LearnOpenGL", NULL, NULL);
@@ -158,16 +161,12 @@ int main() {
   // Register the resize callback
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-  /**
-   * @brief build shader program
-   */
+  /// @brief build shader program
   Shader shader_light{"../shaders/shader_light.vs",
                       "../shaders/shader_light.fs"};
   Shader shader_cube{"../shaders/shader_cube.vs", "../shaders/shader_cube.fs"};
 
-  /**
-   * @brief VAO and VBO
-   */
+  /// @brief VAO and VBO
   // prepare objects
   GLuint VAO_cube, VBO_cube;
   glGenBuffers(1, &VBO_cube);
@@ -198,10 +197,9 @@ int main() {
   glEnableVertexAttribArray(0);
   glBindVertexArray(0);
 
-  /**
-   * @brief Render initializaion
-   */
+  /// @brief Render initializaion
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_MULTISAMPLE);
   // Render loop
   while (!glfwWindowShouldClose(window)) {
     glClearColor(0., 0., 0., 1.0);  // rgba, used to clear viewport
@@ -248,7 +246,8 @@ int main() {
     shader_cube.set_mat4fv("proj", glm::value_ptr(proj));
     shader_cube.set_mat4fv("model", glm::value_ptr(model));
     shader_cube.set_mat4fv("normal_mat", glm::value_ptr(normal_mat));
-    shader_cube.set_vec3fv("view_pos", glm::value_ptr(camera.camera_position()));
+    shader_cube.set_vec3fv("view_pos",
+                           glm::value_ptr(camera.camera_position()));
 
     shader_cube.set_vec3f("mat.ambient", 1.0f, 0.5f, 0.31f);
     shader_cube.set_vec3f("mat.diffuse", 1.0f, 0.5f, 0.31f);
