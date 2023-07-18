@@ -8,7 +8,7 @@
 
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
-#define STB_IMAGE_IMPLEMENTATION
+// #define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
 
 #include <iostream>

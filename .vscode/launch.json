@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "name": "work",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/4.advanced_opengl/4.9.geometry_shader/bin/4.9.geometry_shader.exe",
+      "cwd": "${workspaceFolder}/apps/4.advanced_opengl/4.9.geometry_shader/bin/",
+    },
+    {
+      "name": "test",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/test/bin/test.exe",
+      "cwd": "${workspaceFolder}/apps/test/bin/"
+    }
+  ]
+}

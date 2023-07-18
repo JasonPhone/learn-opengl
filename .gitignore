@@ -1,5 +1,5 @@
 /build/
-.vscode/
+# .vscode/
 /apps/test/
 bin/
 lib/
