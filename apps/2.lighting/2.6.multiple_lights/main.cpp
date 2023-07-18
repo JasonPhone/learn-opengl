@@ -6,18 +6,19 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/shader.h"
-#include "learn-opengl/camera.h"
+#include "learn-opengl/Shader.h"
+#include "learn-opengl/Camera.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
 
-glm::vec3 cam_pos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
 // Front direction, not looking at point
-glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
-Camera cam{cam_pos, cam_front, cam_up};
+glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera cam{camPos, camFront, camUp};
 
 glm::vec3 PointLight_pos[] = {
     glm::vec3( 0.7f,  0.2f,  2.0f),
@@ -26,10 +27,10 @@ glm::vec3 PointLight_pos[] = {
     glm::vec3( 0.0f,  0.0f, -3.0f)
 };
 
-glm::vec3 light_color(1.0f, 1.0f, 1.0f);
-glm::vec3 obj_color(1.0f, 0.5f, 0.31f);
+glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+glm::vec3 objColor(1.0f, 0.5f, 0.31f);
 
-float delta_time = 0;
+float deltaTime = 0;
 float last_frame = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
@@ -40,19 +41,19 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = cam.move_speed() * delta_time;
+  float cam_speed = cam.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::FORWARD, delta_time);
+    cam.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::BACKWARD, delta_time);
+    cam.move(MOVE_DIRECTION::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::LEFT, delta_time);
+    cam.move(MOVE_DIRECTION::LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::RIGHT, delta_time);
+    cam.move(MOVE_DIRECTION::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::UP, delta_time);
+    cam.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::DOWN, delta_time);
+    cam.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
 void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
   cam.turn(xpos, ypos);
@@ -210,15 +211,15 @@ int main() {
   glEnable(GL_DEPTH_TEST);
   // Set sampler2D
   shader_cube.use();
-  shader_cube.set_int("mat.diffuse", 0);
-  shader_cube.set_int("mat.specular", 1);
-  shader_cube.set_int("mat.emission", 2);
+  shader_cube.setInt("mat.diffuse", 0);
+  shader_cube.setInt("mat.specular", 1);
+  shader_cube.setInt("mat.emission", 2);
   // Render loop
   while (!glfwWindowShouldClose(window)) {
     /****** Logic ******/
     glfwPollEvents();
     float cur_frame = glfwGetTime();
-    delta_time = cur_frame - last_frame;
+    deltaTime = cur_frame - last_frame;
     last_frame = cur_frame;
 
     float time = glfwGetTime();
@@ -235,55 +236,55 @@ int main() {
     // Cube
     for (int i = 0; i < 10; i++) {
       model = glm::mat4{1};
-      view = cam.view_matrix();
+      view = cam.viewMatrix();
       proj = glm::perspective(glm::radians(cam.fov()),
                                         1.0 * SCR_W / SCR_H, 0.1, 100.0);
       model = glm::translate(model, cube_pos[i]);
       // model = glm::rotate(model, glm::radians(time) * (10 + i), glm::vec3(0, 1, 0));
       glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
       shader_cube.use();
-      shader_cube.set_mat4fv("view", glm::value_ptr(view));
-      shader_cube.set_mat4fv("proj", glm::value_ptr(proj));
-      shader_cube.set_mat4fv("model", glm::value_ptr(model));
-      shader_cube.set_mat4fv("normal_mat", glm::value_ptr(normal_mat));
-      shader_cube.set_vec3fv("view_pos", glm::value_ptr(cam.camera_position()));
+      shader_cube.setMat4fv("view", glm::value_ptr(view));
+      shader_cube.setMat4fv("proj", glm::value_ptr(proj));
+      shader_cube.setMat4fv("model", glm::value_ptr(model));
+      shader_cube.setMat4fv("normal_mat", glm::value_ptr(normal_mat));
+      shader_cube.setVec3fv("view_pos", glm::value_ptr(cam.cameraPosition()));
 
-      shader_cube.set_float("mat.shininess", 64.0f);
+      shader_cube.setFloat("mat.shininess", 64.0f);
 
       // Light casters
       // DirLight
-      shader_cube.set_vec3f("dir_light.direction", -0.2f, -1.0f, -0.3f);
-      shader_cube.set_vec3f("dir_light.ambient", 0.1f, 0.1f, 0.1f);
-      shader_cube.set_vec3f("dir_light.diffuse", 0.2f, 0.2f, 0.2f);
-      shader_cube.set_vec3f("dir_light.specular", 0.5f, 0.5f, 0.5f);
+      shader_cube.setVec3f("dir_light.direction", -0.2f, -1.0f, -0.3f);
+      shader_cube.setVec3f("dir_light.ambient", 0.1f, 0.1f, 0.1f);
+      shader_cube.setVec3f("dir_light.diffuse", 0.2f, 0.2f, 0.2f);
+      shader_cube.setVec3f("dir_light.specular", 0.5f, 0.5f, 0.5f);
       // PointLight
       for (int i = 0; i < 4; i++) {
         std::string light_name = "point_lights[";
         light_name += '0' + i;
         light_name += "].";
 
-        shader_cube.set_vec3fv((light_name + "position").c_str(), glm::value_ptr(PointLight_pos[i]));
-        shader_cube.set_vec3f((light_name + "ambient").c_str(), 0.1f, 0.1f, 0.1f);
-        shader_cube.set_vec3f((light_name + "diffuse").c_str(), 0.3f, 0.3f, 0.3f);
-        shader_cube.set_vec3f((light_name + "specular").c_str(), 1.0f, 1.0f, 1.0f);
+        shader_cube.setVec3fv((light_name + "position").c_str(), glm::value_ptr(PointLight_pos[i]));
+        shader_cube.setVec3f((light_name + "ambient").c_str(), 0.1f, 0.1f, 0.1f);
+        shader_cube.setVec3f((light_name + "diffuse").c_str(), 0.3f, 0.3f, 0.3f);
+        shader_cube.setVec3f((light_name + "specular").c_str(), 1.0f, 1.0f, 1.0f);
 
-        shader_cube.set_float((light_name + "constant").c_str(), 1.0f);
-        shader_cube.set_float((light_name + "linear").c_str(), 0.09f);
-        shader_cube.set_float((light_name + "quadratic").c_str(), 0.032f);
+        shader_cube.setFloat((light_name + "constant").c_str(), 1.0f);
+        shader_cube.setFloat((light_name + "linear").c_str(), 0.09f);
+        shader_cube.setFloat((light_name + "quadratic").c_str(), 0.032f);
       }
       // SpotLight
-      shader_cube.set_vec3fv("spot_light.point_light.position", glm::value_ptr(cam.camera_position()));
-      shader_cube.set_vec3f("spot_light.point_light.ambient", 0.0f, 0.0f, 0.0f);
-      shader_cube.set_vec3f("spot_light.point_light.diffuse", 0.5f, 0.5f, 0.5f);
-      shader_cube.set_vec3f("spot_light.point_light.specular", 1.0f, 1.0f, 1.0f);
+      shader_cube.setVec3fv("spot_light.point_light.position", glm::value_ptr(cam.cameraPosition()));
+      shader_cube.setVec3f("spot_light.point_light.ambient", 0.0f, 0.0f, 0.0f);
+      shader_cube.setVec3f("spot_light.point_light.diffuse", 0.5f, 0.5f, 0.5f);
+      shader_cube.setVec3f("spot_light.point_light.specular", 1.0f, 1.0f, 1.0f);
 
-      shader_cube.set_float("spot_light.point_light.constant", 1.0f);
-      shader_cube.set_float("spot_light.point_light.linear", 0.22f);
-      shader_cube.set_float("spot_light.point_light.quadratic", 0.20f);
+      shader_cube.setFloat("spot_light.point_light.constant", 1.0f);
+      shader_cube.setFloat("spot_light.point_light.linear", 0.22f);
+      shader_cube.setFloat("spot_light.point_light.quadratic", 0.20f);
 
-      shader_cube.set_vec3fv("spot_light.direction", glm::value_ptr(cam.camera_front()));
-      shader_cube.set_float("spot_light.cutoff_inner", glm::cos(glm::radians(12.5f)));
-      shader_cube.set_float("spot_light.cutoff_outer", glm::cos(glm::radians(17.5f)));
+      shader_cube.setVec3fv("spot_light.direction", glm::value_ptr(cam.cameraFront()));
+      shader_cube.setFloat("spot_light.cutoff_inner", glm::cos(glm::radians(12.5f)));
+      shader_cube.setFloat("spot_light.cutoff_outer", glm::cos(glm::radians(17.5f)));
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, diffuse_map);
@@ -298,14 +299,14 @@ int main() {
 
     // Light
     shader_light.use();
-    view = cam.view_matrix();
+    view = cam.viewMatrix();
     for (int i = 0; i < 4; i++) {
       model = glm::mat4{1};
       model = glm::translate(model, PointLight_pos[i]);
       model = glm::scale(model, glm::vec3(0.2f));
-      shader_light.set_mat4fv("view", glm::value_ptr(view));
-      shader_light.set_mat4fv("proj", glm::value_ptr(proj));
-      shader_light.set_mat4fv("model", glm::value_ptr(model));
+      shader_light.setMat4fv("view", glm::value_ptr(view));
+      shader_light.setMat4fv("proj", glm::value_ptr(proj));
+      shader_light.setMat4fv("model", glm::value_ptr(model));
 
       glBindVertexArray(VAO_light);
       glDrawArrays(GL_TRIANGLES, 0, 36);

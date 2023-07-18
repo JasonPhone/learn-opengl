@@ -9,19 +9,17 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/model.h"
-#include "learn-opengl/shader.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
-static unsigned int textureFromFile(const std::string &path,
-                                    const std::string &directory,
-                                    bool gamma = false);
+#include "learn-opengl/Model.h"
+#include "learn-opengl/Shader.h"
+
 static void processModel(const tinyobj::attrib_t &attrib,
                          const std::vector<tinyobj::shape_t> &shapes,
                          const std::vector<tinyobj::material_t> &materials,
                          std::vector<Mesh> &meshes, const std::string &dir);
-void Mesh::setup_mesh() {
+void Mesh::setupMesh() {
   glGenVertexArrays(1, &mVAO);
   glGenBuffers(1, &mVBO);
   glGenBuffers(1, &mEBO);
@@ -68,7 +66,7 @@ void Mesh::draw(Shader const &shader) {
     else if (name == "texture_height")
       number = std::to_string(num_tex_height++);
 
-    shader.set_int(("material." + name + number).c_str(), i);
+    shader.setInt(("material." + name + number).c_str(), i);
     // LOG("Set texture", ("material." + name + number).c_str());
     glBindTexture(GL_TEXTURE_2D, mTextures[i].id);
   }
@@ -98,7 +96,7 @@ void Mesh::drawInstanced(Shader const &shader, const int instanceNum) {
     else if (name == "texture_height")
       number = std::to_string(num_tex_height++);
 
-    shader.set_int(("material." + name + number).c_str(), i);
+    shader.setInt(("material." + name + number).c_str(), i);
     // LOG("Set texture", ("material." + name + number).c_str());
     glBindTexture(GL_TEXTURE_2D, mTextures[i].id);
   }
@@ -111,7 +109,7 @@ void Mesh::drawInstanced(Shader const &shader, const int instanceNum) {
   glBindVertexArray(0);
 }
 
-void Model::load_model(const std::string &path, bool triangulate) {
+void Model::loadModel(const std::string &path, bool triangulate) {
   LOG << "Loading " << path << std::endl;
   mDirectory = path.substr(0, path.find_last_of('/'));
   tinyobj::attrib_t attrib;
@@ -152,7 +150,8 @@ static void processModel(const tinyobj::attrib_t &attrib,
     // Diffuse.
     if (!materials[idxMat].diffuse_texname.empty()) {
       LOG << "diffuse ";
-      tex.id = textureFromFile(materials[idxMat].diffuse_texname, dir);
+      tex.id =
+          loadTexture((dir + "/" + materials[idxMat].diffuse_texname).c_str());
       tex.type = "texture_diffuse";
       tex.path = materials[idxMat].diffuse_texname;
       textures.push_back(tex);
@@ -160,7 +159,8 @@ static void processModel(const tinyobj::attrib_t &attrib,
     // Specular.
     if (!materials[idxMat].specular_texname.empty()) {
       LOG << "specular ";
-      tex.id = textureFromFile(materials[idxMat].specular_texname, dir);
+      tex.id =
+          loadTexture((dir + "/" + materials[idxMat].specular_texname).c_str());
       tex.type = "texture_specular";
       tex.path = materials[idxMat].specular_texname;
       textures.push_back(tex);
@@ -168,7 +168,8 @@ static void processModel(const tinyobj::attrib_t &attrib,
     // Normal.
     if (!materials[idxMat].bump_texname.empty()) {
       LOG << "normal ";
-      tex.id = textureFromFile(materials[idxMat].bump_texname, dir);
+      tex.id =
+          loadTexture((dir + "/" + materials[idxMat].bump_texname).c_str());
       tex.type = "texture_normal";
       tex.path = materials[idxMat].bump_texname;
       textures.push_back(tex);
@@ -179,7 +180,7 @@ static void processModel(const tinyobj::attrib_t &attrib,
 
   for (size_t i = 0; i < shapes.size(); i++) {
     auto curShape = shapes[i];
-    LOG << string_format("Loading shape %s(%d)\n", curShape.name.c_str(), i);
+    LOG << stringFormat("Loading shape %s(%d)\n", curShape.name.c_str(), i);
 
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -225,46 +226,4 @@ static void processModel(const tinyobj::attrib_t &attrib,
     }
     meshes.push_back(Mesh{vertices, indices, localTextures});
   }
-}
-
-static unsigned int textureFromFile(const std::string &path,
-                                    const std::string &directory, bool) {
-  std::string filename = path;
-  filename = directory + '/' + filename;
-  // LOG << "Texture from file " << filename << std::endl;
-
-  int width, height, nrComponents;
-  // Flip loaded texture's on the y-axis (before loadingmodel).
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char *data =
-      stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-
-  unsigned int textureID;
-  glGenTextures(1, &textureID);
-  if (data) {
-    GLenum format = 1;
-    if (nrComponents == 1)
-      format = GL_RED;
-    else if (nrComponents == 3)
-      format = GL_RGB;
-    else if (nrComponents == 4)
-      format = GL_RGBA;
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    stbi_image_free(data);
-  } else {
-    std::cerr << "Texture failed to load at path: " << path << std::endl;
-    stbi_image_free(data);
-  }
-  return textureID;
 }

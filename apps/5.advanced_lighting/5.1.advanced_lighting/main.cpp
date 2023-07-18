@@ -18,64 +18,31 @@
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
 
-glm::vec3 cam_pos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
 // Front direction, not looking at point
-glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
-Camera camera{cam_pos, cam_front, cam_up};
+glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera{camPos, camFront, camUp};
 
-glm::vec3 light_pos(1.5f, 1.5f, 4.0f);
-glm::vec3 light_color(1.0f, 1.0f, 1.0f);
-glm::vec3 obj_color(1.0f, 0.5f, 0.31f);
+glm::vec3 lightPos(1.5f, 1.5f, 4.0f);
+glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+glm::vec3 objColor(1.0f, 0.5f, 0.31f);
 
-float delta_time = 0;
-float last_frame = 0;
+float deltaTime = 0;
+float lastFrame = 0;
 
 // vertex data
 // clang-format off
-  float cube[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+float planeVertices[] = {
+  // positions            // normals         // texcoords
+   10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+  -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+  -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-  };
+   10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+  -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+   10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+};
 // clang-format on
 
 void framebuffer_size_callback(GLFWwindow *, int w, int h) {
@@ -87,17 +54,17 @@ void process_input(GLFWwindow *window) {
     glfwSetWindowShouldClose(window, true);
   // Camera move
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::FORWARD, delta_time);
+    camera.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::BACKWARD, delta_time);
+    camera.move(MOVE_DIRECTION::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::LEFT, delta_time);
+    camera.move(MOVE_DIRECTION::LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::RIGHT, delta_time);
+    camera.move(MOVE_DIRECTION::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::UP, delta_time);
+    camera.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::DOWN, delta_time);
+    camera.move(MOVE_DIRECTION::DOWN, deltaTime);
   // Camera turn.
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -2);
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 2);
@@ -163,40 +130,30 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   /// @brief build shader program
-  Shader shader_light{"../shaders/shader_light.vs",
-                      "../shaders/shader_light.fs"};
-  Shader shader_cube{"../shaders/shader_cube.vs", "../shaders/shader_cube.fs"};
+  Shader shader_lighting{"../shaders/shader_lighting.vs",
+                         "../shaders/shader_lighting.fs"};
 
   /// @brief VAO and VBO
-  // prepare objects
-  GLuint VAO_cube, VBO_cube;
-  glGenBuffers(1, &VBO_cube);
-  glGenVertexArrays(1, &VAO_cube);
-  // start to record
-  glBindVertexArray(VAO_cube);
+  GLuint planeVAO, planeVBO;
+  glGenVertexArrays(1, &planeVAO);
+  glGenBuffers(1, &planeVBO);
 
-  // buffer VBO
-  // Cube
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
-  // vertex attrib: position
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+  glBindVertexArray(planeVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  // vertex attrib: vertex normal
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                        (void *)(3 * sizeof(float)));
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void*)(0));
   glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void*)(3 * FLOAT_SIZE));
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void*)(6 * FLOAT_SIZE));
   glBindVertexArray(0);
+  
+  /// @brief Textures
+  GLuint floorTex = loadTexture("../textures/wood.png");
+  shader_lighting.use();
+  shader_lighting.setInt("texture1", 0);
 
-  // Light
-  GLuint VAO_light;
-  glGenVertexArrays(1, &VAO_light);
-  glBindVertexArray(VAO_light);
-  // Reuse vertex data of cube
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-  glBindVertexArray(0);
 
   /// @brief Render initializaion
   glEnable(GL_DEPTH_TEST);
@@ -213,8 +170,8 @@ int main() {
     /****** Logic ******/
     glfwPollEvents();
     float cur_frame = glfwGetTime();
-    delta_time = cur_frame - last_frame;
-    last_frame = cur_frame;
+    deltaTime = cur_frame - lastFrame;
+    lastFrame = cur_frame;
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -231,47 +188,17 @@ int main() {
 
     float time = glfwGetTime();
     float offset = sin(time) * 2;
-    glm::vec3 light_dypos(light_pos.x, light_pos.y, offset);
+    glm::vec3 light_dypos(lightPos.x, lightPos.y, offset);
 
     /****** Render ******/
     // Cube
-    glBindVertexArray(VAO_cube);
     glm::mat4 view = camera.viewMatrix();
     glm::mat4 proj = glm::perspective(glm::radians(camera.fov()),
                                       1.0 * SCR_W / SCR_H, 0.1, 100.0);
     glm::mat4 model{1};
     model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
     glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
-    shader_cube.use();
-    shader_cube.setMat4fv("view", glm::value_ptr(view));
-    shader_cube.setMat4fv("proj", glm::value_ptr(proj));
-    shader_cube.setMat4fv("model", glm::value_ptr(model));
-    shader_cube.setMat4fv("normal_mat", glm::value_ptr(normal_mat));
-    shader_cube.setVec3fv("view_pos",
-                           glm::value_ptr(camera.cameraPosition()));
 
-    shader_cube.setVec3f("mat.ambient", 1.0f, 0.5f, 0.31f);
-    shader_cube.setVec3f("mat.diffuse", 1.0f, 0.5f, 0.31f);
-    shader_cube.setVec3f("mat.specular", 0.5f, 0.5f, 0.5f);
-    shader_cube.setFloat("mat.shininess", 32.0f);
-
-    shader_cube.setVec3fv("lit.position", glm::value_ptr(light_dypos));
-    shader_cube.setVec3f("lit.ambient", 0.2f, 0.2f, 0.2f);
-    shader_cube.setVec3f("lit.diffuse", 0.5f, 0.5f, 0.5f);
-    shader_cube.setVec3f("lit.specular", 1.0f, 1.0f, 1.0f);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
-    // Light
-    glBindVertexArray(VAO_light);
-    shader_light.use();
-    view = camera.viewMatrix();
-    model = glm::mat4{1};
-    model = glm::translate(model, light_dypos);
-    model = glm::scale(model, glm::vec3(0.2f));
-    shader_light.setMat4fv("view", glm::value_ptr(view));
-    shader_light.setMat4fv("proj", glm::value_ptr(proj));
-    shader_light.setMat4fv("model", glm::value_ptr(model));
-    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();

@@ -4,8 +4,7 @@
 #include <cassert>
 #include <string>
 
-
-inline void string_format_recursive(std::string *s, const char *fmt) {
+inline void stringFormatRecursive(std::string *s, const char *fmt) {
   const char *c = fmt;
   // Make sure no extra formatting specifiers when no args left.
   while (*c) {
@@ -25,7 +24,7 @@ inline void string_format_recursive(std::string *s, const char *fmt) {
  * @param fmt_ptr const char**, to modify the original fmt.
  * @param s To store the non-format part.
  */
-inline std::string next_format(const char **fmt_ptr, std::string *s) {
+inline std::string nextFormat(const char **fmt_ptr, std::string *s) {
   // Reference to a pointer.
   const char *&fmt = *fmt_ptr;
   while (*fmt) {
@@ -60,7 +59,7 @@ inline std::string next_format(const char **fmt_ptr, std::string *s) {
 }
 
 template <typename T>
-inline std::string format_one(const char *fmt, T v) {
+inline std::string formatOne(const char *fmt, T v) {
   // First call to count the required space. Extra one for '\0'.
   size_t size = snprintf(nullptr, 0, fmt, v) + 1;
   std::string str;
@@ -76,41 +75,41 @@ inline std::string format_one(const char *fmt, T v) {
  *        Format the string into @param s one arg each iteration.
  */
 template <typename T, typename... Args>
-inline void string_format_recursive(std::string *s, const char *fmt, T v,
-                                    Args... args) {
-  std::string next_fmt = next_format(&fmt, s);
-  *s += format_one(next_fmt.c_str(), v);
-  string_format_recursive(s, fmt, args...);
+inline void stringFormatRecursive(std::string *s, const char *fmt, T v,
+                                  Args... args) {
+  std::string next_fmt = nextFormat(&fmt, s);
+  *s += formatOne(next_fmt.c_str(), v);
+  stringFormatRecursive(s, fmt, args...);
 }
 
 /// @brief Special case of string_format_recursive for float.
 template <typename... Args>
-inline void string_format_recursive(std::string *s, const char *fmt, float v,
-                                    Args... args) {
-  std::string next_fmt = next_format(&fmt, s);
+inline void stringFormatRecursive(std::string *s, const char *fmt, float v,
+                                  Args... args) {
+  std::string next_fmt = nextFormat(&fmt, s);
   if (next_fmt == "%f")
     // Always use enough precision.
     // https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
     // *s += format_one("%.9g", v);
-    *s += format_one("%.4g", v);
+    *s += formatOne("%.4g", v);
   else
     // No operation.
-    *s += format_one(next_fmt.c_str(), v);
+    *s += formatOne(next_fmt.c_str(), v);
   // Go forth for next arg.
-  string_format_recursive(s, fmt, args...);
+  stringFormatRecursive(s, fmt, args...);
 }
 
 /// @brief Special case of string_format_recursive for float.
 template <typename... Args>
-inline void string_format_recursive(std::string *s, const char *fmt, double v,
-                                    Args... args) {
-  std::string next_fmt = next_format(&fmt, s);
+inline void stringFormatRecursive(std::string *s, const char *fmt, double v,
+                                  Args... args) {
+  std::string next_fmt = nextFormat(&fmt, s);
   if (next_fmt == "%f")
     // *s += format_one("%.17g", v);
-    *s += format_one("%.4g", v);
+    *s += formatOne("%.4g", v);
   else
-    *s += format_one(next_fmt.c_str(), v);
-  string_format_recursive(s, fmt, args...);
+    *s += formatOne(next_fmt.c_str(), v);
+  stringFormatRecursive(s, fmt, args...);
 }
 
 /**
@@ -119,8 +118,8 @@ inline void string_format_recursive(std::string *s, const char *fmt, double v,
  *        precision.
  */
 template <typename... Args>
-inline std::string string_format(const char *fmt, Args... args) {
+inline std::string stringFormat(const char *fmt, Args... args) {
   std::string ret;
-  string_format_recursive(&ret, fmt, args...);
+  stringFormatRecursive(&ret, fmt, args...);
   return ret;
 }

@@ -6,25 +6,26 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/shader.h"
-#include "learn-opengl/camera.h"
+#include "learn-opengl/Shader.h"
+#include "learn-opengl/Camera.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
 
-glm::vec3 cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
 // Front direction, not looking at point
-glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
-Camera cam{cam_pos, cam_front, cam_up};
+glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera cam{camPos, camFront, camUp};
 
 /**
  * @brief Delta time is the time cost to render last frame.
  * If it's big, we need to go faster in this frame, so
  * delta_time is suitable for the time duration of current frame.
  */
-float delta_time = 0;
+float deltaTime = 0;
 float last_frame = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
@@ -35,24 +36,24 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = cam.move_speed() * delta_time;
+  float cam_speed = cam.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    cam.move(MOVE_DIRECTION::FORWARD, delta_time);
+    cam.move(MOVE_DIRECTION::FORWARD, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    cam.move(MOVE_DIRECTION::BACKWARD, delta_time);
+    cam.move(MOVE_DIRECTION::BACKWARD, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    cam.move(MOVE_DIRECTION::LEFT, delta_time);
+    cam.move(MOVE_DIRECTION::LEFT, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    cam.move(MOVE_DIRECTION::RIGHT, delta_time);
+    cam.move(MOVE_DIRECTION::RIGHT, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-    cam.move(MOVE_DIRECTION::UP, delta_time);
+    cam.move(MOVE_DIRECTION::UP, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-    cam.move(MOVE_DIRECTION::DOWN, delta_time);
+    cam.move(MOVE_DIRECTION::DOWN, deltaTime);
   }
 }
 void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
@@ -257,8 +258,8 @@ int main() {
   // render loop
   shader.use();
   // tell the shader which texture unit they are
-  shader.set_int("texture0", 0);
-  shader.set_int("texture1", 1);
+  shader.setInt("texture0", 0);
+  shader.setInt("texture1", 1);
 
   glEnable(GL_DEPTH_TEST);
   while (!glfwWindowShouldClose(window)) {
@@ -285,7 +286,7 @@ int main() {
     /****** Logic ******/
     glfwPollEvents();
     float cur_frame = glfwGetTime();
-    delta_time = cur_frame - last_frame;
+    deltaTime = cur_frame - last_frame;
     last_frame = cur_frame;
     // std::cout << "delta time: " << delta_time << "\n";
 
@@ -295,7 +296,7 @@ int main() {
     double radius = 10;
     double cam_x = sin(time) * radius;
     double cam_z = cos(time) * radius;
-    view = cam.view_matrix();
+    view = cam.viewMatrix();
 
     glm::mat4 proj{1};
     GLuint loc;

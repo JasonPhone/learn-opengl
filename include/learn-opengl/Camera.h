@@ -51,10 +51,10 @@ class Camera {
    * @param ypos Current Y position of cursor.
    */
   void turn(double xpos, double ypos);
-  void turn_delta(double xoffset, double yoffset) {
+  void turnDelta(double xoffset, double yoffset) {
     yoffset = -yoffset;
 
-    float sensitivity = turn_sensitivity();
+    float sensitivity = turnSensitivity();
     m_camera_pitch += sensitivity * yoffset;
     m_camera_yaw += sensitivity * xoffset;
 
@@ -68,8 +68,8 @@ class Camera {
     front.z =
         -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
 
-    m_camera_front = front;
-    m_camera_right = glm::normalize(glm::cross(m_camera_front, m_camera_up));
+    m_cameraFront = front;
+    m_camera_right = glm::normalize(glm::cross(m_cameraFront, m_camera_up));
   }
   /**
    * @brief Camera zoom in-out.
@@ -88,37 +88,37 @@ class Camera {
    *
    * @param spd new speed
    */
-  void set_move_speed(double spd);
+  void setMoveSpeed(double spd);
   /**
    * @brief Get the move speed
    *
    * @return double
    */
-  double move_speed() const;
+  double moveSpeed() const;
   /**
    * @brief Set the turn sensitivity.
    *
    * @param sensi New sensitivity.
    */
-  void set_turn_sensitivity(double sensi);
+  void setTurnSensitivity(double sensi);
   /**
    * @brief Get the turn sensitivity
    *
    * @return double
    */
-  double turn_sensitivity() const;
+  double turnSensitivity() const;
   /**
    * @brief Get the view matrix for MVP transformation.
    * @return glm::mat4 The view matrix of this camera.
    */
-  glm::mat4 view_matrix() const;
+  glm::mat4 viewMatrix() const;
   /**
    * @brief Get current camera position.
    *
    * @return glm::vec3 Position.
    */
-  glm::vec3 camera_position() const;
-  glm::vec3 camera_front() const;
+  glm::vec3 cameraPosition() const;
+  glm::vec3 cameraFront() const;
 
  private:
   bool m_mouse_first_capture;
@@ -126,7 +126,7 @@ class Camera {
   double m_camera_pitch, m_camera_yaw, m_camera_fov;
   double m_move_speed, m_turn_sensitivity;
   glm::vec3 m_camera_pos;
-  glm::vec3 m_camera_front;
+  glm::vec3 m_cameraFront;
   glm::vec3 m_camera_up;
   glm::vec3 m_camera_right;  // Auxiliary vector
 };

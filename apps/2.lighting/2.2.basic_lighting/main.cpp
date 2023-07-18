@@ -6,24 +6,25 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/shader.h"
-#include "learn-opengl/camera.h"
+#include "learn-opengl/Shader.h"
+#include "learn-opengl/Camera.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
 
-glm::vec3 cam_pos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
 // Front direction, not looking at point
-glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
-Camera cam{cam_pos, cam_front, cam_up};
+glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera cam{camPos, camFront, camUp};
 
-glm::vec3 light_pos(1.5f, 1.5f, 4.0f);
-glm::vec3 light_color(1.0f, 1.0f, 1.0f);
-glm::vec3 obj_color(1.0f, 0.5f, 0.31f);
+glm::vec3 lightPos(1.5f, 1.5f, 4.0f);
+glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+glm::vec3 objColor(1.0f, 0.5f, 0.31f);
 
-float delta_time = 0;
+float deltaTime = 0;
 float last_frame = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
@@ -34,19 +35,19 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = cam.move_speed() * delta_time;
+  float cam_speed = cam.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::FORWARD, delta_time);
+    cam.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::BACKWARD, delta_time);
+    cam.move(MOVE_DIRECTION::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::LEFT, delta_time);
+    cam.move(MOVE_DIRECTION::LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::RIGHT, delta_time);
+    cam.move(MOVE_DIRECTION::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::UP, delta_time);
+    cam.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    cam.move(MOVE_DIRECTION::DOWN, delta_time);
+    cam.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
 void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
   cam.turn(xpos, ypos);
@@ -191,43 +192,43 @@ int main() {
     /****** Logic ******/
     glfwPollEvents();
     float cur_frame = glfwGetTime();
-    delta_time = cur_frame - last_frame;
+    deltaTime = cur_frame - last_frame;
     last_frame = cur_frame;
 
     float time = glfwGetTime();
     float offset = sin(time) * 2;
-    glm::vec3 light_dypos(light_pos.x, light_pos.y, offset);
+    glm::vec3 light_dypos(lightPos.x, lightPos.y, offset);
 
     /****** Render ******/
     // Cube
     glBindVertexArray(VAO_cube);
-    glm::mat4 view = cam.view_matrix();
+    glm::mat4 view = cam.viewMatrix();
     glm::mat4 proj = glm::perspective(glm::radians(cam.fov()),
                                       1.0 * SCR_W / SCR_H, 0.1, 100.0);
     glm::mat4 model{1};
     model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
     glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
     shader_cube.use();
-    shader_cube.set_mat4fv("view", glm::value_ptr(view));
-    shader_cube.set_mat4fv("proj", glm::value_ptr(proj));
-    shader_cube.set_mat4fv("model", glm::value_ptr(model));
-    shader_cube.set_mat4fv("normal_mat", glm::value_ptr(normal_mat));
-    shader_cube.set_vec3fv("obj_color", glm::value_ptr(obj_color));
-    shader_cube.set_vec3fv("light_color", glm::value_ptr(light_color));
-    shader_cube.set_vec3fv("light_pos", glm::value_ptr(light_dypos));
-    shader_cube.set_vec3fv("view_pos", glm::value_ptr(cam.camera_position()));
+    shader_cube.setMat4fv("view", glm::value_ptr(view));
+    shader_cube.setMat4fv("proj", glm::value_ptr(proj));
+    shader_cube.setMat4fv("model", glm::value_ptr(model));
+    shader_cube.setMat4fv("normal_mat", glm::value_ptr(normal_mat));
+    shader_cube.setVec3fv("obj_color", glm::value_ptr(objColor));
+    shader_cube.setVec3fv("light_color", glm::value_ptr(lightColor));
+    shader_cube.setVec3fv("light_pos", glm::value_ptr(light_dypos));
+    shader_cube.setVec3fv("view_pos", glm::value_ptr(cam.cameraPosition()));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     // Light
     glBindVertexArray(VAO_light);
     shader_light.use();
-    view = cam.view_matrix();
+    view = cam.viewMatrix();
     model = glm::mat4{1};
     model = glm::translate(model, light_dypos);
     model = glm::scale(model, glm::vec3(0.2f));
-    shader_light.set_mat4fv("view", glm::value_ptr(view));
-    shader_light.set_mat4fv("proj", glm::value_ptr(proj));
-    shader_light.set_mat4fv("model", glm::value_ptr(model));
+    shader_light.setMat4fv("view", glm::value_ptr(view));
+    shader_light.setMat4fv("proj", glm::value_ptr(proj));
+    shader_light.setMat4fv("model", glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     if (glCheckError() != GL_NO_ERROR) break;

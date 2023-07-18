@@ -11,9 +11,9 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
   "${CMAKE_SOURCE_DIR}/lib/libglfw3.a"
-  shader
-  camera
-  model
+  Shader
+  Camera
+  Model
 )
 
 # Copy assimp dll into this folder

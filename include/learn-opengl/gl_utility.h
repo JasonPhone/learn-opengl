@@ -10,12 +10,13 @@
 
 #include <glad/glad.h>
 
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cassert>
 
 #include "stb_image.h"
+
 /**
  * @brief Check if gl call causes error
  * @note NEVER call this before glfwInit()
@@ -72,7 +73,8 @@ constexpr int FLOAT_SIZE = sizeof(float);
  * `CLAMP_TO_EDGE` and `GL_CLAMP_TO_BORDER`. `GL_REPEAT` by default.
  * @return unsigned int ID of texture.
  */
-inline GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
+#define load_texture loadTexture
+inline GLuint loadTexture(char const* path, GLenum warp_type = GL_REPEAT) {
   GLuint texture_id;
   glGenTextures(1, &texture_id);
 
@@ -141,7 +143,7 @@ inline GLuint load_texture(char const* path, GLenum warp_type = GL_REPEAT) {
  * @param paths Vector storing paths to images.
  * @return GLuint Cubemap ID.
  */
-inline GLuint load_cubemap(std::vector<std::string> const& paths) {
+inline GLuint loadCubemap(std::vector<std::string> const& paths) {
   GLuint texture_id = 0;
   glGenTextures(1, &texture_id);
   glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
@@ -169,7 +171,7 @@ inline GLuint load_cubemap(std::vector<std::string> const& paths) {
       glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, img_w, img_h,
                    0, format, GL_UNSIGNED_BYTE, data);
     } else {
-      LOG << "load_cubemap: Fail to load cubemap at path " << paths[i]
+      LOG << "loadCubemap: Fail to load cubemap at path " << paths[i]
           << std::endl;
     }
     stbi_image_free(data);

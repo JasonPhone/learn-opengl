@@ -7,11 +7,11 @@
  *
  */
 
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Shader.h"
 Shader::Shader(const char* v_shader_path, const char* f_shader_path) {
   // read and compile two shaders
-  GLuint v_shader = load_and_compile(v_shader_path, GL_VERTEX_SHADER);
-  GLuint f_shader = load_and_compile(f_shader_path, GL_FRAGMENT_SHADER);
+  GLuint v_shader = loadAndCompile(v_shader_path, GL_VERTEX_SHADER);
+  GLuint f_shader = loadAndCompile(f_shader_path, GL_FRAGMENT_SHADER);
 
   // link as shader program
   ID = glCreateProgram();
@@ -33,9 +33,9 @@ Shader::Shader(const char* v_shader_path, const char* f_shader_path) {
 Shader::Shader(const char* v_shader_path, const char* g_shader_path,
                const char* f_shader_path) {
   // read and compile two shaders
-  GLuint v_shader = load_and_compile(v_shader_path, GL_VERTEX_SHADER);
-  GLuint f_shader = load_and_compile(f_shader_path, GL_FRAGMENT_SHADER);
-  GLuint g_shader = load_and_compile(g_shader_path, GL_GEOMETRY_SHADER);
+  GLuint v_shader = loadAndCompile(v_shader_path, GL_VERTEX_SHADER);
+  GLuint f_shader = loadAndCompile(f_shader_path, GL_FRAGMENT_SHADER);
+  GLuint g_shader = loadAndCompile(g_shader_path, GL_GEOMETRY_SHADER);
 
   // link as shader program
   ID = glCreateProgram();
@@ -57,7 +57,7 @@ Shader::Shader(const char* v_shader_path, const char* g_shader_path,
   glDeleteShader(f_shader);
 }
 
-GLuint Shader::load_and_compile(const char* path, GLenum shader_type) {
+GLuint Shader::loadAndCompile(const char* path, GLenum shader_type) {
   // reading
   std::string shader_str;
   std::ifstream shader_file;
@@ -100,28 +100,28 @@ GLuint Shader::load_and_compile(const char* path, GLenum shader_type) {
 
 void Shader::use() const { glUseProgram(ID); }
 
-void Shader::set_int(char const* uniform_name, int value) const {
+void Shader::setInt(char const* uniform_name, int value) const {
   glUniform1i(glGetUniformLocation(ID, uniform_name), value);
 }
-void Shader::set_bool(char const* uniform_name, bool value) const {
+void Shader::setBool(char const* uniform_name, bool value) const {
   glUniform1i(glGetUniformLocation(ID, uniform_name), static_cast<int>(value));
 }
-void Shader::set_float(char const* uniform_name, float value) const {
+void Shader::setFloat(char const* uniform_name, float value) const {
   glUniform1f(glGetUniformLocation(ID, uniform_name), value);
 }
-void Shader::set_vec2f(char const* uniform_name, float x, float y) const {
+void Shader::setVec2f(char const* uniform_name, float x, float y) const {
   glUniform2f(glGetUniformLocation(ID, uniform_name), x, y);
 }
-void Shader::set_vec2fv(char const* uniform_name, GLfloat const* ptr) const {
+void Shader::setVec2fv(char const* uniform_name, GLfloat const* ptr) const {
   glUniform2fv(glGetUniformLocation(ID, uniform_name), 1, ptr);
 }
-void Shader::set_vec3f(char const* uniform_name, float x, float y,
-                       float z) const {
+void Shader::setVec3f(char const* uniform_name, float x, float y,
+                      float z) const {
   glUniform3f(glGetUniformLocation(ID, uniform_name), x, y, z);
 }
-void Shader::set_vec3fv(char const* uniform_name, GLfloat const* ptr) const {
+void Shader::setVec3fv(char const* uniform_name, GLfloat const* ptr) const {
   glUniform3fv(glGetUniformLocation(ID, uniform_name), 1, ptr);
 }
-void Shader::set_mat4fv(char const* uniform_name, GLfloat const* ptr) const {
+void Shader::setMat4fv(char const* uniform_name, GLfloat const* ptr) const {
   glUniformMatrix4fv(glGetUniformLocation(ID, uniform_name), 1, GL_FALSE, ptr);
 }

@@ -3,9 +3,9 @@
 #include <glad/glad.h>
 
 #include <iostream>
-
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Shader.h"
 void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
   glViewport(0, 0, w, h);
 }
@@ -151,8 +151,8 @@ int main() {
   // render loop
   shader.use();
   // tell the shader which texture unit they are
-  shader.set_int("texture0", 0);
-  shader.set_int("texture1", 1);
+  shader.setInt("texture0", 0);
+  shader.setInt("texture1", 1);
   while (!glfwWindowShouldClose(window)) {
     /**
      * Use color 0.3, 0.3, 0.3 to clear color buffer

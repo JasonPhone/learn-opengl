@@ -4,8 +4,9 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Shader.h"
 
 using namespace std;
 // Vertex shader src

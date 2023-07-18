@@ -1,5 +1,5 @@
 /**
- * @file model.h
+ * @file Model.h
  * @author ja50n (zs_feng@qq.com)
  * @brief Model and Mesh classes to receive (assimp or other library) imported
  * models.
@@ -34,7 +34,7 @@ class Mesh {
   Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
        std::vector<Texture> textures)
       : mVertices{vertices}, mIndices{indices}, mTextures{textures} {
-    setup_mesh();
+    setupMesh();
   }
   /// @brief Draw the mesh using provided shader.
   void draw(const Shader& shader);
@@ -48,13 +48,13 @@ class Mesh {
 
  private:
   /// @brief Setup mesh object and fill the buffer obj and array obj.
-  void setup_mesh();
+  void setupMesh();
 };
 
 /// @brief Store a model.
 class Model {
  public:
-  Model(const char* path) { load_model(path); }
+  Model(const char* path) { loadModel(path); }
   void draw(const Shader& shader) {
     for (auto&& mesh : mMeshes) mesh.draw(shader);
   }
@@ -63,7 +63,7 @@ class Model {
   }
 
  private:
-  void load_model(const std::string& path, bool triangulate = true);
+  void loadModel(const std::string& path, bool triangulate = true);
   // void process_node(aiNode *node, const aiScene *scene);
   // Mesh process_mesh(aiMesh *mesh, const aiScene *scene);
   // std::vector<Texture> load_material_textures(aiMaterial *mat,

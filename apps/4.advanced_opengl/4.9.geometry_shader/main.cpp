@@ -9,13 +9,13 @@
 #include <map>
 #include <vector>
 
+#include "learn-opengl/gl_utility.h"
 #include "ImGui/backend/imgui_impl_glfw.h"
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
-#include "learn-opengl/camera.h"
-#include "learn-opengl/gl_utility.h"
-#include "learn-opengl/model.h"
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Camera.h"
+#include "learn-opengl/Model.h"
+#include "learn-opengl/Shader.h"
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 900;
@@ -64,10 +64,10 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
   // Camera turn.
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turn_delta(0, -2);
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turn_delta(0, 2);
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turn_delta(-2, 0);
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turn_delta(2, 0);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -2);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 2);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-2, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(2, 0);
 }
 
 int main() {
@@ -78,7 +78,7 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  camera.set_move_speed(3);
+  camera.setMoveSpeed(3);
 
   // glfw window creation
   // --------------------
@@ -194,20 +194,20 @@ int main() {
     glm::mat4 projection =
         glm::perspective(glm::radians(45.0f),
                          (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 1000.0f);
-    glm::mat4 view = camera.view_matrix();
+    glm::mat4 view = camera.viewMatrix();
     glm::mat4 model = glm::mat4(1.0f);
     shader.use();
-    shader.set_mat4fv("projection", glm::value_ptr(projection));
-    shader.set_mat4fv("view", glm::value_ptr(view));
-    shader.set_mat4fv("model", glm::value_ptr(model));
-    shader.set_float("time", explode_shift);
+    shader.setMat4fv("projection", glm::value_ptr(projection));
+    shader.setMat4fv("view", glm::value_ptr(view));
+    shader.setMat4fv("model", glm::value_ptr(model));
+    shader.setFloat("time", explode_shift);
     // nanosuit.draw(shader);
     cube.draw(shader);
 
     // shader_normal.use();
-    // shader_normal.set_mat4fv("projection", glm::value_ptr(projection));
-    // shader_normal.set_mat4fv("view", glm::value_ptr(view));
-    // shader_normal.set_mat4fv("model", glm::value_ptr(model));
+    // shader_normal.setMat4fv("projection", glm::value_ptr(projection));
+    // shader_normal.setMat4fv("view", glm::value_ptr(view));
+    // shader_normal.setMat4fv("model", glm::value_ptr(model));
     // nanosuit.draw(shader_normal);
     // cube.draw(shader_normal);
 

@@ -9,15 +9,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#include "learn-opengl/camera.h"
-#include "learn-opengl/model.h"
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Camera.h"
+#include "learn-opengl/Model.h"
+#include "learn-opengl/Shader.h"
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 // timing
-float delta_time = 0.0f;
+float deltaTime = 0.0f;
 float last_frame = 0.0f;
 
 // camera
@@ -34,19 +34,19 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  camera.set_move_speed(2.5);
+  camera.setMoveSpeed(2.5);
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::FORWARD, delta_time);
+    camera.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::BACKWARD, delta_time);
+    camera.move(MOVE_DIRECTION::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::LEFT, delta_time);
+    camera.move(MOVE_DIRECTION::LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::RIGHT, delta_time);
+    camera.move(MOVE_DIRECTION::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::UP, delta_time);
+    camera.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::DOWN, delta_time);
+    camera.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos * 1.5, ypos * 1.5);
@@ -64,7 +64,7 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  camera.set_move_speed(7);
+  camera.setMoveSpeed(7);
 
   // glfw window creation
   // --------------------
@@ -115,7 +115,7 @@ int main() {
     // per-frame time logic
     // --------------------
     float currentFrame = static_cast<float>(glfwGetTime());
-    delta_time = currentFrame - last_frame;
+    deltaTime = currentFrame - last_frame;
     last_frame = currentFrame;
 
     // input
@@ -134,9 +134,9 @@ int main() {
     glm::mat4 projection =
         glm::perspective(glm::radians(float(camera.fov())),
                          (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = camera.view_matrix();
-    model_shader.set_mat4fv("projection", glm::value_ptr(projection));
-    model_shader.set_mat4fv("view", glm::value_ptr(view));
+    glm::mat4 view = camera.viewMatrix();
+    model_shader.setMat4fv("projection", glm::value_ptr(projection));
+    model_shader.setMat4fv("view", glm::value_ptr(view));
 
     // render the loaded model
     glm::mat4 model = glm::mat4(1.0f);
@@ -149,23 +149,23 @@ int main() {
         model,
         glm::vec3(1.0f, 1.0f,
                   1.0f));  // it's a bit too big for our scene, so scale it down
-    model_shader.set_mat4fv("model", glm::value_ptr(model));
+    model_shader.setMat4fv("model", glm::value_ptr(model));
 
-    model_shader.set_vec3fv("view_pos",
-                            glm::value_ptr(camera.camera_position()));
+    model_shader.setVec3fv("view_pos",
+                            glm::value_ptr(camera.cameraPosition()));
     // Light
     float time = glfwGetTime();
     float x = sin(time) * 10;
     float z = cos(time) * 10;
-    model_shader.set_vec3f("point_light.position", x, 10, z);
+    model_shader.setVec3f("point_light.position", x, 10, z);
 
-    model_shader.set_vec3f("point_light.ambient", 0.1f, 0.1f, 0.1f);
-    model_shader.set_vec3f("point_light.diffuse", 0.8f, 0.8f, 0.8f);
-    model_shader.set_vec3f("point_light.specular", 1.0f, 1.0f, 1.0f);
+    model_shader.setVec3f("point_light.ambient", 0.1f, 0.1f, 0.1f);
+    model_shader.setVec3f("point_light.diffuse", 0.8f, 0.8f, 0.8f);
+    model_shader.setVec3f("point_light.specular", 1.0f, 1.0f, 1.0f);
 
-    model_shader.set_float("point_light.att_constant", 1.0f);
-    model_shader.set_float("point_light.att_linear", 0.009f);
-    model_shader.set_float("point_light.att_quadratic", 0.0032f);
+    model_shader.setFloat("point_light.att_constant", 1.0f);
+    model_shader.setFloat("point_light.att_linear", 0.009f);
+    model_shader.setFloat("point_light.att_quadratic", 0.0032f);
 
     ai_model.draw(model_shader);
 

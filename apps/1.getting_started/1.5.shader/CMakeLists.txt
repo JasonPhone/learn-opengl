@@ -8,5 +8,5 @@ add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/src/glad.c ${CMAKE_CURRENT_SO
 
 target_link_libraries(${PROJECT_NAME}
   "${CMAKE_SOURCE_DIR}/lib/libglfw3.a"
-  shader
+  Shader
 )

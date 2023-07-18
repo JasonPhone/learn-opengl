@@ -12,10 +12,10 @@
 #include "ImGui/backend/imgui_impl_glfw.h"
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
-#include "learn-opengl/camera.h"
+#include "learn-opengl/Camera.h"
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/model.h"
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Model.h"
+#include "learn-opengl/Shader.h"
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 900;
@@ -68,10 +68,10 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
   // Camera turn.
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turn_delta(0, -2);
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turn_delta(0, 2);
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turn_delta(-2, 0);
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turn_delta(2, 0);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -2);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 2);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-2, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(2, 0);
 }
 void normalDraw(GLFWwindow *window);
 void instancedDraw(GLFWwindow *window);
@@ -84,7 +84,7 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  camera.set_move_speed(3);
+  camera.setMoveSpeed(3);
 
   // glfw window creation
   // --------------------
@@ -210,22 +210,22 @@ void normalDraw(GLFWwindow *window) {
     glm::mat4 projection =
         glm::perspective(glm::radians(45.0f),
                          (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 1000.0f);
-    glm::mat4 view = camera.view_matrix();
+    glm::mat4 view = camera.viewMatrix();
     shader.use();
-    shader.set_mat4fv("projection", glm::value_ptr(projection));
+    shader.setMat4fv("projection", glm::value_ptr(projection));
     if (glCheckError() != GL_NO_ERROR) break;
-    shader.set_mat4fv("view", glm::value_ptr(view));
+    shader.setMat4fv("view", glm::value_ptr(view));
 
     // draw planet
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
     model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
-    shader.set_mat4fv("model", glm::value_ptr(model));
+    shader.setMat4fv("model", glm::value_ptr(model));
     planet.draw(shader);
 
     // draw meteorites
     for (unsigned int i = 0; i < INSTANCE_NUM; i++) {
-      shader.set_mat4fv("model", glm::value_ptr(modelMats[i]));
+      shader.setMat4fv("model", glm::value_ptr(modelMats[i]));
       rock.draw(shader);
     }
 
@@ -334,22 +334,22 @@ void instancedDraw(GLFWwindow *window) {
     glm::mat4 projection =
         glm::perspective(glm::radians(45.0f),
                          (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 1000.0f);
-    glm::mat4 view = camera.view_matrix();
+    glm::mat4 view = camera.viewMatrix();
     shader.use();
-    shader.set_mat4fv("projection", glm::value_ptr(projection));
-    shader.set_mat4fv("view", glm::value_ptr(view));
+    shader.setMat4fv("projection", glm::value_ptr(projection));
+    shader.setMat4fv("view", glm::value_ptr(view));
 
     // draw planet
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
     model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
-    shader.set_mat4fv("model", glm::value_ptr(model));
+    shader.setMat4fv("model", glm::value_ptr(model));
     planet.draw(shader);
 
     // draw meteorites
     shaderInstanced.use();
-    shaderInstanced.set_mat4fv("projection", glm::value_ptr(projection));
-    shaderInstanced.set_mat4fv("view", glm::value_ptr(view));
+    shaderInstanced.setMat4fv("projection", glm::value_ptr(projection));
+    shaderInstanced.setMat4fv("view", glm::value_ptr(view));
     if (glCheckError() != GL_NO_ERROR) break;
     for (unsigned int i = 0; i < rock.mMeshes.size(); i++) {
       rock.drawInstanced(shaderInstanced, INSTANCE_NUM);

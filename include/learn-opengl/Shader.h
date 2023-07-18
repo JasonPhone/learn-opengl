@@ -1,5 +1,5 @@
 /**
- * @file shader.h
+ * @file Shader.h
  * @author ja50n (zs_feng@qq.com)
  * @brief custom shader class
  * @version 0.1
@@ -32,18 +32,18 @@ class Shader {
          char const *f_shader_path);
   /// @brief use this program in context
   void use() const;
-  void set_int(char const *uniform_name, int value) const;
-  void set_bool(char const *uniform_name, bool value) const;
-  void set_float(char const *uniform_name, float value) const;
-  void set_vec2f(char const *uniform_name, float x, float y) const;
-  void set_vec2fv(char const *uniform_name, GLfloat const *ptr) const;
-  void set_vec3f(char const *uniform_name, float x, float y, float z) const;
-  void set_vec3fv(char const *uniform_name, GLfloat const *ptr) const;
+  void setInt(char const *uniform_name, int value) const;
+  void setBool(char const *uniform_name, bool value) const;
+  void setFloat(char const *uniform_name, float value) const;
+  void setVec2f(char const *uniform_name, float x, float y) const;
+  void setVec2fv(char const *uniform_name, GLfloat const *ptr) const;
+  void setVec3f(char const *uniform_name, float x, float y, float z) const;
+  void setVec3fv(char const *uniform_name, GLfloat const *ptr) const;
   /// @brief Set the value of an existing matrix4 uniform
   ///
   /// @param uniform_name Name of this uniform
   /// @param ptr glm::value_ptr(.)
-  void set_mat4fv(char const *uniform_name, GLfloat const *ptr) const;
+  void setMat4fv(char const *uniform_name, GLfloat const *ptr) const;
   /// @brief id of shader program
   GLuint ID;
 
@@ -53,5 +53,5 @@ class Shader {
   /// @param path shader file
   /// @param shader_type type of shader, just pass the GL_VERTEX_SHADER or else
   /// @return GLuint shader handle
-  GLuint load_and_compile(const char *path, GLenum shader_type);
+  GLuint loadAndCompile(const char *path, GLenum shader_type);
 };

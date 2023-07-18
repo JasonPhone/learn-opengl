@@ -1,15 +1,17 @@
-#include "learn-opengl/camera.h"
+#include "learn-opengl/Camera.h"
+
 #include <glm/gtx/quaternion.hpp>
+
 
 Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 up, double pitch,
                double yaw)
     : m_camera_pitch{pitch},
       m_camera_yaw{yaw},
       m_camera_pos{pos},
-      m_camera_front{glm::normalize(front)} {
+      m_cameraFront{glm::normalize(front)} {
   // In case camera up is not perpendicular with look direction
   m_camera_right = glm::normalize(glm::cross(front, up));
-  m_camera_up = glm::normalize(glm::cross(m_camera_right, m_camera_front));
+  m_camera_up = glm::normalize(glm::cross(m_camera_right, m_cameraFront));
 
   m_mouse_first_capture = true;
   m_camera_fov = 45;
@@ -54,7 +56,7 @@ void Camera::turn(double xpos, double ypos) {
   m_last_xpos = xpos;
   m_last_ypos = ypos;
 
-  float sensitivity = turn_sensitivity();
+  float sensitivity = turnSensitivity();
   m_camera_pitch += sensitivity * yoffset;
   m_camera_yaw += sensitivity * xoffset;
 
@@ -67,8 +69,8 @@ void Camera::turn(double xpos, double ypos) {
   front.z =
       -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
 
-  m_camera_front = front;
-  m_camera_right = glm::normalize(glm::cross(m_camera_front, m_camera_up));
+  m_cameraFront = front;
+  m_camera_right = glm::normalize(glm::cross(m_cameraFront, m_camera_up));
 }
 
 void Camera::zoom(double yoffset) {
@@ -77,22 +79,22 @@ void Camera::zoom(double yoffset) {
 
 double Camera::fov() const { return m_camera_fov; }
 
-void Camera::set_move_speed(double spd) {
+void Camera::setMoveSpeed(double spd) {
   m_move_speed = glm::clamp(spd, 0.0, 1e5);
 }
 
-double Camera::move_speed() const { return m_move_speed; }
+double Camera::moveSpeed() const { return m_move_speed; }
 
-void Camera::set_turn_sensitivity(double sensi) {
+void Camera::setTurnSensitivity(double sensi) {
   m_turn_sensitivity = glm::clamp(sensi, 0.0, 1e5);
 }
 
-double Camera::turn_sensitivity() const { return m_turn_sensitivity; }
+double Camera::turnSensitivity() const { return m_turn_sensitivity; }
 
-glm::mat4 Camera::view_matrix() const {
-  return glm::lookAt(m_camera_pos, m_camera_pos + m_camera_front, m_camera_up);
+glm::mat4 Camera::viewMatrix() const {
+  return glm::lookAt(m_camera_pos, m_camera_pos + m_cameraFront, m_camera_up);
 }
 
-glm::vec3 Camera::camera_position() const { return m_camera_pos; }
+glm::vec3 Camera::cameraPosition() const { return m_camera_pos; }
 
-glm::vec3 Camera::camera_front() const { return m_camera_front; }
+glm::vec3 Camera::cameraFront() const { return m_cameraFront; }

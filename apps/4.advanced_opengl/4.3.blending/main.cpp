@@ -6,8 +6,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "learn-opengl/shader.h"
-#include "learn-opengl/camera.h"
+#include "learn-opengl/Shader.h"
+#include "learn-opengl/Camera.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
 
 #include <iostream>
@@ -18,7 +19,7 @@
 constexpr unsigned int SCR_WIDTH = 800;
 constexpr unsigned int SCR_HEIGHT = 600;
 // Timing
-float delta_time = 0.0f;
+float deltaTime = 0.0f;
 float last_frame = 0.0f;
 
 // Camera
@@ -131,19 +132,19 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = camera.move_speed() * delta_time;
+  float cam_speed = camera.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::FORWARD, delta_time);
+    camera.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::BACKWARD, delta_time);
+    camera.move(MOVE_DIRECTION::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::LEFT, delta_time);
+    camera.move(MOVE_DIRECTION::LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::RIGHT, delta_time);
+    camera.move(MOVE_DIRECTION::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::UP, delta_time);
+    camera.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    camera.move(MOVE_DIRECTION::DOWN, delta_time);
+    camera.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
 void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
   camera.turn(xpos, ypos);
@@ -160,7 +161,7 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  camera.set_move_speed(3);
+  camera.setMoveSpeed(3);
 
   // glfw window creation
   // --------------------
@@ -264,12 +265,12 @@ int main() {
   // Render loop
   // -----------
   model_shader.use();
-  model_shader.set_int("texture1", 0);
+  model_shader.setInt("texture1", 0);
   while (!glfwWindowShouldClose(window)) {
     // Per-frame time logic
     // --------------------
     float currentFrame = static_cast<float>(glfwGetTime());
-    delta_time = currentFrame - last_frame;
+    deltaTime = currentFrame - last_frame;
     last_frame = currentFrame;
 
     // Input
@@ -284,18 +285,18 @@ int main() {
     // Use model shader
     model_shader.use();
     glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 view = camera.view_matrix();
+    glm::mat4 view = camera.viewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.fov()), 1.0 * SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0);
-    model_shader.set_mat4fv("view", glm::value_ptr(view));
-    model_shader.set_mat4fv("projection", glm::value_ptr(projection));
+    model_shader.setMat4fv("view", glm::value_ptr(view));
+    model_shader.setMat4fv("projection", glm::value_ptr(projection));
 
     // Normal rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // Floor
     glBindTexture(GL_TEXTURE_2D, floor_texture);
-    model_shader.set_mat4fv("model", glm::value_ptr(glm::mat4(1.0f)));
+    model_shader.setMat4fv("model", glm::value_ptr(glm::mat4(1.0f)));
     glBindVertexArray(plane_VAO);
     glStencilMask(0x00);  // Forbid stencil updating of floor part
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -306,12 +307,12 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, cube_texture);
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(-1.0f, -0.5f, -1.0f));
-    model_shader.set_mat4fv("model", glm::value_ptr(model));
+    model_shader.setMat4fv("model", glm::value_ptr(model));
     glBindVertexArray(cube_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    model_shader.set_mat4fv("model", glm::value_ptr(model));
+    model_shader.setMat4fv("model", glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     // Blend
@@ -321,22 +322,22 @@ int main() {
     // for correct blending with depth testing enabled.
     std::map<float, glm::vec3> blend_pos_sorted;
     for (auto &pos : blend_pos) {
-      float dis = glm::length(camera.camera_position() - pos);
+      float dis = glm::length(camera.cameraPosition() - pos);
       blend_pos_sorted[-dis] = pos;
     }
     for (auto &dis_pos : blend_pos_sorted) {
       model = glm::mat4(1.0);
       model = glm::translate(model, dis_pos.second);
-      model_shader.set_mat4fv("model", glm::value_ptr(model));
+      model_shader.setMat4fv("model", glm::value_ptr(model));
       glBindVertexArray(blend_VAO);
       glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     // Blend problem
     blend_shader.use();
-    blend_shader.set_mat4fv("projection", glm::value_ptr(projection));
-    blend_shader.set_mat4fv("view", glm::value_ptr(view));
+    blend_shader.setMat4fv("projection", glm::value_ptr(projection));
+    blend_shader.setMat4fv("view", glm::value_ptr(view));
     model = glm::mat4(1.0);
-    blend_shader.set_mat4fv("model", glm::value_ptr(model));
+    blend_shader.setMat4fv("model", glm::value_ptr(model));
     glBindVertexArray(prob_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDrawArrays(GL_TRIANGLES, 3, 3);

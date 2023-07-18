@@ -6,8 +6,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/shader.h"
+#include "learn-opengl/Shader.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
@@ -199,8 +200,8 @@ int main() {
   // render loop
   shader.use();
   // tell the shader which texture unit they are
-  shader.set_int("texture0", 0);
-  shader.set_int("texture1", 1);
+  shader.setInt("texture0", 0);
+  shader.setInt("texture1", 1);
 
   glEnable(GL_DEPTH_TEST);
   while (!glfwWindowShouldClose(window)) {
