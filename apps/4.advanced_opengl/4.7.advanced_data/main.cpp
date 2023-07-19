@@ -8,8 +8,8 @@
 
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
+#include "learn-opengl/image.h"
 
 #include <iostream>
 #include <vector>
@@ -269,7 +269,6 @@ int main() {
     return -1;
   }
 
-  // stbi_set_flip_vertically_on_load(true);
 
   // Configure global opengl state
   // -----------------------------
@@ -324,8 +323,8 @@ int main() {
 
   // Texture
   // -------
-  GLuint model_diffuse = load_texture("../texture/container2_diffuse.png");
-  GLuint model_specular = load_texture("../texture/container2_specular.png");
+  GLuint model_diffuse = loadTexture("../texture/container2_diffuse.png");
+  GLuint model_specular = loadTexture("../texture/container2_specular.png");
   // Cubemap texture
   std::vector<std::string> cube_faces{
       "../texture/skybox/right.jpg", "../texture/skybox/left.jpg",

@@ -117,7 +117,6 @@ int main() {
   const char *glsl_version = "#version 330";
   ImGui_ImplOpenGL3_Init(glsl_version);
 
-  // stbi_set_flip_vertically_on_load(true);
 
   // Configure global opengl state
   // -----------------------------

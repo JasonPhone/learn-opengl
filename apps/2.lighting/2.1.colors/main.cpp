@@ -5,7 +5,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"

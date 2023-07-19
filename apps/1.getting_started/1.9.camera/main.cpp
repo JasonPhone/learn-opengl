@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#define STB_IMAGE_IMPLEMENTATION
+#include "learn-opengl/image.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
@@ -121,10 +121,10 @@ int main() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   // load image
-  stbi_set_flip_vertically_on_load(true);
+  flipVerticalOnLoad(true);
   int image_w, image_h, image_channel;
   unsigned char *image =
-      stbi_load("./opengl_logo.png", &image_w, &image_h, &image_channel, 0);
+      loadImage("./opengl_logo.png", &image_w, &image_h, &image_channel, 0);
   if (image) {
     // transfer texture data
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_w, image_h, 0, GL_RGBA,
@@ -132,7 +132,7 @@ int main() {
     // now the texture has only base-level(0) image attached
     // generate mipmap for current bind texture
     glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(image);
+    freeImage(image);
   } else {
     std::cerr << "::main: fail to load image\n";
   }
@@ -146,14 +146,14 @@ int main() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  image = stbi_load("./awesomeface.png", &image_w, &image_h, &image_channel, 0);
+  image = loadImage("./awesomeface.png", &image_w, &image_h, &image_channel, 0);
   if (image) {
     // transfer texture data
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_w, image_h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, image);
     // generate mipmap for current bind texture
     glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(image);
+    freeImage(image);
   } else {
     std::cerr << "::main: fail to load image\n";
   }

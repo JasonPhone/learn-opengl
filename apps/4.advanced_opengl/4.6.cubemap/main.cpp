@@ -1,7 +1,6 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,9 +13,10 @@
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
 #include "learn-opengl/Camera.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
+#include "learn-opengl/gl_utility.h"
+#include "learn-opengl/image.h"
+
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 800;
@@ -198,8 +198,6 @@ int main() {
   const char *glsl_version = "#version 330";
   ImGui_ImplOpenGL3_Init(glsl_version);
 
-  // stbi_set_flip_vertically_on_load(true);
-
   // Configure global opengl state
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
@@ -241,8 +239,8 @@ int main() {
 
   // Texture
   // -------
-  GLuint model_diffuse = load_texture("../texture/container2_diffuse.png");
-  GLuint model_specular = load_texture("../texture/container2_specular.png");
+  GLuint model_diffuse = loadTexture("../texture/container2_diffuse.png");
+  GLuint model_specular = loadTexture("../texture/container2_specular.png");
   // Cubemap texture
   std::vector<std::string> cube_faces{
       "../texture/skybox/right.jpg", "../texture/skybox/left.jpg",
@@ -297,7 +295,7 @@ int main() {
     model_shader.setMat4fv("view", glm::value_ptr(view));
     model_shader.setMat4fv("projection", glm::value_ptr(projection));
     model_shader.setVec3fv("camera_pos",
-                            glm::value_ptr(camera.cameraPosition()));
+                           glm::value_ptr(camera.cameraPosition()));
     glBindVertexArray(cube_VAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, model_diffuse);

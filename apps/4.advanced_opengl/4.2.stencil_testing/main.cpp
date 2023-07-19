@@ -8,8 +8,8 @@
 
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
+#include "learn-opengl/image.h"
 
 #include <iostream>
 
@@ -89,7 +89,6 @@ int main() {
     return -1;
   }
 
-  // stbi_set_flip_vertically_on_load(true);
 
   // Configure global opengl state
   // -----------------------------
@@ -192,8 +191,8 @@ int main() {
                         (void *)(3 * sizeof(float)));
   glBindVertexArray(0);
   // Texture
-  GLuint cubeTexture = load_texture("../texture/marble.jpg");
-  GLuint floorTexture = load_texture("../texture/metal.png");
+  GLuint cubeTexture = loadTexture("../texture/marble.jpg");
+  GLuint floorTexture = loadTexture("../texture/metal.png");
 
   // Render loop
   // -----------

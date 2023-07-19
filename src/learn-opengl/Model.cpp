@@ -6,9 +6,8 @@
 
 #include "glm/fwd.hpp"
 #include "learn-opengl/stringformat.h"
-
-#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
+#include "learn-opengl/image.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 

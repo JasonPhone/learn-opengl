@@ -14,4 +14,5 @@ target_link_libraries(${PROJECT_NAME}
   Shader
   Camera
   imgui
+  image
 )

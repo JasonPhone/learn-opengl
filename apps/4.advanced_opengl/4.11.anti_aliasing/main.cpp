@@ -11,7 +11,6 @@
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
 #include "learn-opengl/Camera.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
 

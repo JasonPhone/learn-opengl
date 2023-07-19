@@ -8,7 +8,6 @@
 
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
-// #define STB_IMAGE_IMPLEMENTATION
 #include "learn-opengl/gl_utility.h"
 
 #include <iostream>
@@ -138,7 +137,6 @@ int main() {
     return -1;
   }
 
-  // stbi_set_flip_vertically_on_load(true);
 
   // Configure global opengl state
   // -----------------------------
