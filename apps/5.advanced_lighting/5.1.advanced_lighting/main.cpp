@@ -11,9 +11,10 @@
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
 #include "learn-opengl/Camera.h"
+#include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
-#include "learn-opengl/Shader.h"
+#include "learn-opengl/prefab.h"
 
 constexpr int SCR_W = 800;
 constexpr int SCR_H = 600;
@@ -24,9 +25,8 @@ glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera camera{camPos, camFront, camUp};
 
-glm::vec3 lightPos(1.5f, 1.5f, 4.0f);
-glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-glm::vec3 objColor(1.0f, 0.5f, 0.31f);
+glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+int blinnState = 0;
 
 float deltaTime = 0;
 float lastFrame = 0;
@@ -35,13 +35,13 @@ float lastFrame = 0;
 // clang-format off
 float planeVertices[] = {
   // positions            // normals         // texcoords
-   10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-  -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-  -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+   20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
+  -20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+  -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
 
-   10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-  -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-   10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+   20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
+  -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
+   20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,  20.0f, 20.0f
 };
 // clang-format on
 
@@ -66,10 +66,31 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
   // Camera turn.
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -2);
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 2);
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-2, 0);
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(2, 0);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -4);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 4);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-4, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(4, 0);
+  // Shading switch.
+  if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+    if (blinnState == 0)
+      blinnState = 1;
+    else if (blinnState == 1)
+      blinnState = 1;
+    else if (blinnState == 2)
+      blinnState = 3;
+    else if (blinnState == 3)
+      blinnState = 3;
+  }
+  if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) {
+    if (blinnState == 0)
+      blinnState = 0;
+    else if (blinnState == 1)
+      blinnState = 2;
+    else if (blinnState == 2)
+      blinnState = 2;
+    else if (blinnState == 3)
+      blinnState = 0;
+  }
 }
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
@@ -110,6 +131,7 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
+  glEnable(GL_DEPTH_TEST);
 
   // Setup Dear ImGui context
   printf("imgui context\n");
@@ -132,28 +154,41 @@ int main() {
   /// @brief build shader program
   Shader shader_lighting{"../shaders/shader_lighting.vs",
                          "../shaders/shader_lighting.fs"};
+  Shader shader_cube{"../shaders/shader_cube.vs", "../shaders/shader_cube.fs"};
 
   /// @brief VAO and VBO
   GLuint planeVAO, planeVBO;
   glGenVertexArrays(1, &planeVAO);
   glGenBuffers(1, &planeVBO);
-
   glBindVertexArray(planeVAO);
   glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices,
+               GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void*)(0));
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void *)(0));
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void*)(3 * FLOAT_SIZE));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE,
+                        (void *)(3 * FLOAT_SIZE));
   glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void*)(6 * FLOAT_SIZE));
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE,
+                        (void *)(6 * FLOAT_SIZE));
   glBindVertexArray(0);
-  
+
+  GLuint cubeVAO, cubeVBO;
+  glGenVertexArrays(1, &cubeVAO);
+  glGenBuffers(1, &cubeVBO);
+  glBindVertexArray(cubeVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(prefab::cube), prefab::cube,
+               GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * FLOAT_SIZE, (void *)(0));
+  glBindVertexArray(0);
+
   /// @brief Textures
   GLuint floorTex = loadTexture("../textures/wood.png");
   shader_lighting.use();
   shader_lighting.setInt("texture1", 0);
-
 
   /// @brief Render initializaion
   glEnable(GL_DEPTH_TEST);
@@ -178,27 +213,49 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     {
-      ImGui::Begin("Anti Aliasing");
+      ImGui::Begin("Advanced Lighting");
 
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      ImGui::Text((((blinnState == 2) ? true : false) ? "Blinn-Phong" : "Phong"));
 
       ImGui::End();
     }
 
-    float time = glfwGetTime();
-    float offset = sin(time) * 2;
-    glm::vec3 light_dypos(lightPos.x, lightPos.y, offset);
+    // float time = glfwGetTime();
+    // float offset = sin(time) * 2;
+    // glm::vec3 light_dypos(lightPos.x, lightPos.y, offset);
 
     /****** Render ******/
     // Cube
     glm::mat4 view = camera.viewMatrix();
     glm::mat4 proj = glm::perspective(glm::radians(camera.fov()),
-                                      1.0 * SCR_W / SCR_H, 0.1, 100.0);
+                                      1.0 * SCR_W / SCR_H, 0.01, 100.0);
     glm::mat4 model{1};
-    model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
+    // model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
     glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
 
+    shader_lighting.use();
+    shader_lighting.setMat4fv("model", glm::value_ptr(model));
+    shader_lighting.setMat4fv("view", glm::value_ptr(view));
+    shader_lighting.setMat4fv("proj", glm::value_ptr(proj));
+
+    shader_lighting.setVec3fv("lightPos", glm::value_ptr(lightPos));
+    shader_lighting.setVec3fv("viewPos",
+                              glm::value_ptr(camera.cameraPosition()));
+    shader_lighting.setBool("blinn", (blinnState == 2) ? true : false);
+    glBindVertexArray(planeVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, floorTex);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    shader_cube.use();
+    model = glm::scale(model, glm::vec3{0.05, 0.05, 0.05});
+    shader_cube.setMat4fv("model", glm::value_ptr(model));
+    shader_cube.setMat4fv("view", glm::value_ptr(view));
+    shader_cube.setMat4fv("proj", glm::value_ptr(proj));
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();
