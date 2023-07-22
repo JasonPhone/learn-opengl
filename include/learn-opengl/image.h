@@ -22,11 +22,12 @@ void freeImage(void* image_ptr);
  * @brief Load a texture from image using stb_image.
  *
  * @param path Path to image.
+ * @param sRGB true to load this image as from sRGB space.
  * @param warp_type S and T warp type. `GL_REPEAT`, `GL_MIRRORED_REPEAT`,
  * `CLAMP_TO_EDGE` and `GL_CLAMP_TO_BORDER`. `GL_REPEAT` by default.
  * @return unsigned int ID of texture.
  */
-GLuint loadTexture(char const* path, GLenum warp_type = GL_REPEAT);
+GLuint loadTexture(char const* path, bool sRGB = false, GLenum warp_type = GL_REPEAT);
 /**
  * @brief Load cubemap from image files.
  *

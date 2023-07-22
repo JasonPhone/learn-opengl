@@ -22,15 +22,7 @@ unsigned char* loadImage(const char* file_name, int* x, int* y, int* channel,
   return stbi_load(file_name, x, y, channel, desire_channel);
 }
 void freeImage(void* image_ptr) { stbi_image_free(image_ptr); }
-/**
- * @brief Load a texture from image using stb_image.
- *
- * @param path Path to image.
- * @param warp_type S and T warp type. `GL_REPEAT`, `GL_MIRRORED_REPEAT`,
- * `CLAMP_TO_EDGE` and `GL_CLAMP_TO_BORDER`. `GL_REPEAT` by default.
- * @return unsigned int ID of texture.
- */
-GLuint loadTexture(char const* path, GLenum warp_type) {
+GLuint loadTexture(char const* path, bool sRGB, GLenum warp_type) {
   GLuint texture_id;
   glGenTextures(1, &texture_id);
 
@@ -74,8 +66,8 @@ GLuint loadTexture(char const* path, GLenum warp_type) {
     }
 
     glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, img_w, img_h, 0, format,
-                 GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, sRGB ? GL_SRGB : format, img_w, img_h, 0,
+                 format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, warp);
@@ -93,12 +85,6 @@ GLuint loadTexture(char const* path, GLenum warp_type) {
   return texture_id;
 }
 
-/**
- * @brief Load cubemap from image files.
- *
- * @param paths Vector storing paths to images.
- * @return GLuint Cubemap ID.
- */
 GLuint loadCubemap(std::vector<std::string> const& paths) {
   GLuint texture_id = 0;
   glGenTextures(1, &texture_id);
