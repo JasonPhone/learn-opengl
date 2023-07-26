@@ -11,7 +11,8 @@ fs_in;
 uniform sampler2D texture1;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
-uniform bool blinn;
+
+bool eq(float a, float b) { return abs(a - b) < 0.00001; }
 
 void main() {
   vec3 color = texture(texture1, fs_in.texCoords).rgb;
@@ -25,10 +26,9 @@ void main() {
   // Specular
   vec3 wo = normalize(viewPos - fs_in.fragPos);
   float spec = 0;
-    // Blinn-Phong
-    vec3 wHalf = normalize(wi + wo);
-    spec = pow(max(0, dot(n, wHalf)), 32);
+  // Blinn-Phong
+  vec3 wHalf = normalize(wi + wo);
+  spec = pow(max(0, dot(n, wHalf)), 32);
   vec3 colorSpecular = spec * vec3(0.3);
   fragColor = vec4(colorAmbient + colorDiffuse + colorSpecular, 1.0);
-
 }
