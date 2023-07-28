@@ -10,8 +10,8 @@
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
 
-constexpr int SCR_W = 800;
-constexpr int SCR_H = 600;
+constexpr int SCREEN_W = 800;
+constexpr int SCREEN_H = 600;
 
 void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
   glViewport(0, 0, w, h);
@@ -37,7 +37,7 @@ int main() {
                  GLFW_OPENGL_CORE_PROFILE);  // use core profile
   // Get the glfw window
   GLFWwindow *window =
-      glfwCreateWindow(SCR_W, SCR_H, "LearnOpenGL", NULL, NULL);
+      glfwCreateWindow(SCREEN_W, SCREEN_H, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {  // check
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -235,7 +235,7 @@ int main() {
     GLuint loc;
     view = glm::translate(view, glm::vec3{0, 0, -3});
     projection = glm::perspective(
-        glm::radians(45.0f), float(1.0 * SCR_W / SCR_H), 0.1f, 100.0f);
+        glm::radians(45.0f), float(1.0 * SCREEN_W / SCREEN_H), 0.1f, 100.0f);
     loc = glGetUniformLocation(shader.ID, "view");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
 

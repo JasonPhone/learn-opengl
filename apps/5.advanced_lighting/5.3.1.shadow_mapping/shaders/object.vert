@@ -17,12 +17,11 @@ uniform mat4 model;
 uniform mat4 normal_mat;
 
 void main() {
+  // World space.
   vs_out.fragPos = vec3(model * vec4(vPos, 1));
 
   mat3 normalMatrix = mat3(transpose(inverse(model)));
   vs_out.normal = normalMatrix * vNormal;
-
-  // vs_out.normal = vNormal;
   vs_out.texCoords = vTexCoords;
   gl_Position = proj * view * model * vec4(vPos, 1.0);
 }

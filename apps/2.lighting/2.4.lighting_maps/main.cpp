@@ -11,8 +11,8 @@
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
 
-constexpr int SCR_W = 800;
-constexpr int SCR_H = 600;
+constexpr int SCREEN_W = 800;
+constexpr int SCREEN_H = 600;
 
 glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
 // Front direction, not looking at point
@@ -69,7 +69,7 @@ int main() {
                  GLFW_OPENGL_CORE_PROFILE);  // use core profile
   // Get the glfw window
   GLFWwindow *window =
-      glfwCreateWindow(SCR_W, SCR_H, "LearnOpenGL", NULL, NULL);
+      glfwCreateWindow(SCREEN_W, SCREEN_H, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {  // check
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -220,7 +220,7 @@ int main() {
     // Cube
     glm::mat4 view = cam.viewMatrix();
     glm::mat4 proj = glm::perspective(glm::radians(cam.fov()),
-                                      1.0 * SCR_W / SCR_H, 0.1, 100.0);
+                                      1.0 * SCREEN_W / SCREEN_H, 0.1, 100.0);
     glm::mat4 model{1};
     model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
     glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
