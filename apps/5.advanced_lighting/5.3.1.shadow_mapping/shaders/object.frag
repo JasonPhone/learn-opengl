@@ -5,17 +5,27 @@ in VS_OUT {
   vec3 fragPos;
   vec3 normal;
   vec2 texCoords;
+  vec4 fragPosInLightSpace;
 }
 fs_in;
 
-uniform sampler2D texture1;
+uniform sampler2D texDiffuse;
+uniform sampler2D texShadow;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
-bool eq(float a, float b) { return abs(a - b) < 0.00001; }
+float fragInLight(vec4 fragPosLightSpace) {
+  // Perspective divide.
+  vec3 projCoord = fragPosLightSpace.xyz / fragPosLightSpace.w;
+  // [-1, 1] to [0, 1].
+  projCoord = projCoord * 0.5 + 0.5;
+  float firstHit = texture(texShadow, projCoord.xy).r;
+  float currentHit = projCoord.z;
+  return currentHit > firstHit ? 0 : 1;
+}
 
 void main() {
-  vec3 color = texture(texture1, fs_in.texCoords).rgb;
+  vec3 color = texture(texDiffuse, fs_in.texCoords).rgb;
   // Ambient
   vec3 colorAmbient = color * 0.05;
   // Diffuse
@@ -28,7 +38,10 @@ void main() {
   float spec = 0;
   // Blinn-Phong
   vec3 wHalf = normalize(wi + wo);
-  spec = pow(max(0, dot(n, wHalf)), 32);
+  spec = pow(max(0, dot(n, wHalf)), 64);
   vec3 colorSpecular = spec * vec3(0.3);
-  fragColor = vec4(colorAmbient + colorDiffuse + colorSpecular, 1.0);
+
+  float inLight = fragInLight(fs_in.fragPosInLightSpace);
+  fragColor = vec4(
+      colorAmbient + colorDiffuse * inLight + colorSpecular * inLight, 1.0);
 }
