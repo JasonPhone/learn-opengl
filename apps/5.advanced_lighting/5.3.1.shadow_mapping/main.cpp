@@ -124,8 +124,10 @@ int main() {
                GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
   // Bind.
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
@@ -175,7 +177,7 @@ int main() {
     glClearColor(0.01, 0.01, 0.01, 1.0);
     double zNear = 0.01, zFar = 100;
     // Directional light.
-    glm::mat4 proj = glm::ortho(-10., 10., -10., 10., zNear, zFar);
+    glm::mat4 proj = glm::ortho(-5., 5., -5., 5., zNear, zFar);
     glm::mat4 view = glm::lookAt(lightPos, glm::vec3{0}, glm::vec3{0, 1, 0});
     /// @brief Shadowmapping pass.
     glm::mat4 lightSpace = proj * view;
@@ -252,12 +254,6 @@ void process_input(GLFWwindow *window) {
     camera.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
-  // Camera turn.
-  // if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -4);
-  // if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0,
-  // 4); if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-  // camera.turnDelta(-4, 0); if (glfwGetKey(window, GLFW_KEY_RIGHT) ==
-  // GLFW_PRESS) camera.turnDelta(4, 0);
 }
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
@@ -312,14 +308,14 @@ void renderPlane() {
   if (planeVAO == 0) {
     // clang-format off
     float planeVertices[] = {
-      // positions            // normals         // texcoords
-       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  10.0f,  0.0f,
-      -10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,   0.0f,  0.0f,
-      -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,   0.0f, 10.0f,
+      // positions              // normals          // texcoords
+       100.0f,  0.0f,  100.0f,  0.0f, 100.0f, 0.0f, 100.0f,   0.0f,
+      -100.0f,  0.0f,  100.0f,  0.0f, 100.0f, 0.0f,   0.0f,   0.0f,
+      -100.0f,  0.0f, -100.0f,  0.0f, 100.0f, 0.0f,   0.0f, 100.0f,
 
-       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  10.0f,  0.0f,
-      -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,   0.0f, 10.0f,
-       10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  10.0f, 10.0f
+       100.0f,  0.0f,  100.0f,  0.0f, 100.0f, 0.0f, 100.0f,   0.0f,
+      -100.0f,  0.0f, -100.0f,  0.0f, 100.0f, 0.0f,   0.0f, 100.0f,
+       100.0f,  0.0f, -100.0f,  0.0f, 100.0f, 0.0f, 100.0f, 100.0f
     };
     // clang-format on
     glGenVertexArrays(1, &planeVAO);
