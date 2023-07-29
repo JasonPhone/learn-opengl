@@ -105,7 +105,7 @@ int main() {
   Shader shaderTexture("../shaders/texture.vert", "../shaders/texture.frag");
 
   /// @brief Textures
-  GLuint floorTex = loadTexture("../textures/wood.png", true);
+  GLuint texWood = loadTexture("../textures/wood.png", true);
   shaderObject.use();
   shaderObject.setInt("texDiffuse", 0);
   shaderObject.setInt("texShadow", 1);
@@ -177,17 +177,15 @@ int main() {
     // Directional light.
     glm::mat4 proj = glm::ortho(-10., 10., -10., 10., zNear, zFar);
     glm::mat4 view = glm::lookAt(lightPos, glm::vec3{0}, glm::vec3{0, 1, 0});
-    glm::mat4 model{1};
     /// @brief Shadowmapping pass.
     glm::mat4 lightSpace = proj * view;
     shaderDepthMap.use();
     shaderDepthMap.setMat4fv("lightSpaceMat", glm::value_ptr(lightSpace));
-    shaderDepthMap.setMat4fv("model", glm::value_ptr(model));
     glViewport(0, 0, SHADOW_W, SHADOW_H);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, floorTex);
+    glBindTexture(GL_TEXTURE_2D, texWood);
     renderScene(shaderDepthMap);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -202,10 +200,8 @@ int main() {
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, depthMap);
     // renderQuad();
-
     proj = glm::perspective(glm::radians(camera.fov()),
                             1.0 * SCREEN_W / SCREEN_H, zNear, zFar);
-    model = glm::mat4{1};
     view = camera.viewMatrix();
     shaderObject.use();
     shaderObject.setMat4fv("view", glm::value_ptr(view));
@@ -214,7 +210,7 @@ int main() {
     shaderObject.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
     shaderObject.setMat4fv("lightSpaceMat", glm::value_ptr(lightSpace));
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, floorTex);
+    glBindTexture(GL_TEXTURE_2D, texWood);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, depthMap);
     renderScene(shaderObject);
@@ -317,13 +313,13 @@ void renderPlane() {
     // clang-format off
     float planeVertices[] = {
       // positions            // normals         // texcoords
-        10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  10.0f,  0.0f,
+       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  10.0f,  0.0f,
       -10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,   0.0f,  0.0f,
       -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,   0.0f, 10.0f,
 
-        10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  10.0f,  0.0f,
+       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  10.0f,  0.0f,
       -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,   0.0f, 10.0f,
-        10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  10.0f, 10.0f
+       10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  10.0f, 10.0f
     };
     // clang-format on
     glGenVertexArrays(1, &planeVAO);
@@ -344,7 +340,7 @@ void renderPlane() {
     glBindVertexArray(0);
   }
   glBindVertexArray(planeVAO);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
 }
 GLuint quadVAO = 0;

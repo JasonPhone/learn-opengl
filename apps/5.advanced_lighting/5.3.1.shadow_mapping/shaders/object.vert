@@ -20,7 +20,7 @@ uniform mat4 lightSpaceMat;
 void main() {
   // World space.
   vs_out.fragPos = vec3(model * vec4(vPos, 1));
-  vs_out.fragPosInLightSpace = lightSpaceMat * vec4(vPos, 1);
+  vs_out.fragPosInLightSpace = lightSpaceMat * vec4(vs_out.fragPos, 1);
   mat3 normalMatrix = mat3(transpose(inverse(model)));
   vs_out.normal = normalMatrix * vNormal;
   vs_out.texCoords = vTexCoords;

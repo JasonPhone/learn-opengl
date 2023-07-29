@@ -21,7 +21,10 @@ float fragInLight(vec4 fragPosLightSpace) {
   projCoord = projCoord * 0.5 + 0.5;
   float firstHit = texture(texShadow, projCoord.xy).r;
   float currentHit = projCoord.z;
-  return currentHit > firstHit ? 0 : 1;
+  vec3 normal = normalize(fs_in.normal);
+  vec3 lightDir = normalize(lightPos - fs_in.fragPos);
+  float bias = max(0.002 * (1.0 - dot(normal, lightDir)), 0.0002);
+  return currentHit - bias > firstHit ? 0 : 1;
 }
 
 void main() {
