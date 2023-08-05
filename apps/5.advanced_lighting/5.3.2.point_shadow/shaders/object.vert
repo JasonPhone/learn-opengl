@@ -14,12 +14,14 @@ vs_out;
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
+uniform bool reverseNormal;
 
 void main() {
   // World space.
   vs_out.fragPos = vec3(model * vec4(vPos, 1));
   mat3 normalMatrix = mat3(transpose(inverse(model)));
   vs_out.normal = normalMatrix * vNormal;
+  if (reverseNormal) vs_out.normal *= -1;
   vs_out.texCoords = vTexCoords;
   gl_Position = proj * view * model * vec4(vPos, 1.0);
 }

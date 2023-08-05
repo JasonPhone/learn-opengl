@@ -10,14 +10,15 @@
 #include "ImGui/backend/imgui_impl_glfw.h"
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
+//
 #include "learn-opengl/Camera.h"
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
 #include "learn-opengl/prefab.h"
 
-constexpr int SCREEN_W = 800;
-constexpr int SCREEN_H = 600;
+constexpr int SCREEN_W = 1024;
+constexpr int SCREEN_H = 768;
 
 glm::vec3 camPos = glm::vec3(0.0f, 2.0f, 0.0f);
 // Front direction, not looking at point
@@ -31,7 +32,7 @@ float deltaTime = 0;
 float lastFrame = 0;
 
 // Data
-glm::vec3 boxPos[] = {{-0.5, 0.5, -0.5}, {0.5, 0.25, 0.5}, {0.25, 0.8, -0.25}};
+std::vector<glm::vec3> boxPos;
 void framebuffer_size_callback(GLFWwindow *, int w, int h);
 void process_input(GLFWwindow *window);
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos);
@@ -101,19 +102,27 @@ int main() {
   Shader shaderDepthMap{"../shaders/shadowmap.vert",
                         "../shaders/shadowmap.geom",
                         "../shaders/shadowmap.frag"};
-  Shader shaderNormal{"../shaders/normal.vert", "../shaders/normal.geom",
-                      "../shaders/normal.frag"};
 
   /// @brief Textures
   GLuint texWood = loadTexture("../textures/wood.png", true);
   shaderObject.use();
   shaderObject.setInt("texDiffuse", 0);
   shaderObject.setInt("texShadow", 1);
+  for (int i = 0; i < 20; i++) {
+    glm::vec3 pos{0};
+    pos.x = (1.0 * rand() / RAND_MAX - 0.5) * 5;
+    pos.y = (1.0 * rand() / RAND_MAX - 0.5) * 5;
+    pos.z = (1.0 * rand() / RAND_MAX - 0.5) * 5;
+    pos.x += pos.x < 0 ? -2 : 2;
+    pos.y += pos.y < 0 ? -2 : 2;
+    pos.z += pos.z < 0 ? -2 : 2;
+    boxPos.push_back(pos);
+  }
 
   /// @brief Shadow map.
+  constexpr int SHADOW_W = 2048, SHADOW_H = 2048;
   GLuint depthMapFBO;
   glGenFramebuffers(1, &depthMapFBO);
-  constexpr int SHADOW_W = 2048, SHADOW_H = 2048;
   GLuint depthCubeMap;
   // Generate texture.
   glGenTextures(1, &depthCubeMap);
@@ -130,7 +139,6 @@ int main() {
   // Bind texture to frame buffer.
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubeMap, 0);
-  // Disable color RW.
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -154,7 +162,7 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     {
-      ImGui::Begin("Gamma");
+      ImGui::Begin("Point Shadow");
 
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -168,46 +176,48 @@ int main() {
       ImGui::End();
     }
 
-    // float offset = sin(time) * 2;
-    // glm::vec3 light_dypos(lightPos.x, lightPos.y, offset);
-
     /****** Render ******/
     glClearColor(0.01, 0.01, 0.01, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     double zNear = 0.01, zFar = 100, aspect = 1.0 * SHADOW_W / SHADOW_H;
     // Point light.
-    glm::mat4 proj = glm::perspective(90.0, aspect, zNear, zFar);
-    glm::mat4 view = glm::lookAt(lightPos, glm::vec3{0}, glm::vec3{0, 1, 0});
+    glm::mat4 proj = glm::perspective(glm::radians(90.0), aspect, zNear, zFar);
     std::vector<glm::mat4> shadowTransforms;
     shadowTransforms.push_back(
-        proj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0),
-                           glm::vec3(0.0, -1.0, 0.0)));
+        proj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f),
+                           glm::vec3(0.0f, -1.0f, 0.0f)));
     shadowTransforms.push_back(
-        proj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0),
-                           glm::vec3(0.0, -1.0, 0.0)));
+        proj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f),
+                           glm::vec3(0.0f, -1.0f, 0.0f)));
     shadowTransforms.push_back(
-        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0),
-                           glm::vec3(0.0, 0.0, 1.0)));
+        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 1.0f, 0.0f),
+                           glm::vec3(0.0f, 0.0f, 1.0f)));
     shadowTransforms.push_back(
-        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0),
-                           glm::vec3(0.0, 0.0, -1.0)));
+        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, -1.0f, 0.0f),
+                           glm::vec3(0.0f, 0.0f, -1.0f)));
     shadowTransforms.push_back(
-        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0),
-                           glm::vec3(0.0, -1.0, 0.0)));
+        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f),
+                           glm::vec3(0.0f, -1.0f, 0.0f)));
     shadowTransforms.push_back(
-        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0),
-                           glm::vec3(0.0, -1.0, 0.0)));
+        proj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f),
+                           glm::vec3(0.0f, -1.0f, 0.0f)));
 
     /// @brief Shadowmapping pass.
-    shaderDepthMap.use();
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glViewport(0, 0, SHADOW_W, SHADOW_H);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texWood);
-    shaderDepthMap.setMat4fv("shadowMats", glm::value_ptr(shadowTransforms[0]));
-    shaderDepthMap.setVec3fv("lightPos", glm::value_ptr(lightPos));
-    shaderDepthMap.setFloat("far_plane", zFar);
-    renderScene(shaderDepthMap);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    {
+      glClear(GL_DEPTH_BUFFER_BIT);
+      shaderDepthMap.use();
+      for (unsigned int i = 0; i < 6; ++i) {
+        std::string name = "shadowMats[" + std::to_string(i) + "]";
+        shaderDepthMap.setMat4fv(name.c_str(), &(shadowTransforms[i][0][0]));
+      }
+      // shaderDepthMap.setMat4fv("shadowMats",
+      //                          glm::value_ptr(shadowTransforms[0]));
+      shaderDepthMap.setVec3fv("lightPos", glm::value_ptr(lightPos));
+      shaderDepthMap.setFloat("farPlane", zFar);
+      renderScene(shaderDepthMap);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /// @brief Common rendering pass.
@@ -215,13 +225,13 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     proj = glm::perspective(glm::radians(camera.fov()),
                             1.0 * SCREEN_W / SCREEN_H, zNear, zFar);
-    view = camera.viewMatrix();
+    glm::mat4 view = camera.viewMatrix();
     shaderObject.use();
     shaderObject.setMat4fv("view", glm::value_ptr(view));
     shaderObject.setMat4fv("proj", glm::value_ptr(proj));
     shaderObject.setVec3fv("lightPos", glm::value_ptr(lightPos));
     shaderObject.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
-    shaderObject.setFloat("far_plane", zFar);
+    shaderObject.setFloat("farPlane", zFar);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texWood);
     glActiveTexture(GL_TEXTURE1);
@@ -275,12 +285,13 @@ void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
 }
 void renderScene(const Shader &shader) {
   // Box.
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::scale(model, glm::vec3{10, 10, 10});
+  glm::mat4 model = glm::scale(glm::mat4{1.0}, glm::vec3{10, 10, 10});
   shader.setMat4fv("model", glm::value_ptr(model));
+  shader.setBool("reverseNormal", true);
   renderCube();
   // Cubes
-  for (int i = 0; i < 3; i++) {
+  shader.setBool("reverseNormal", false);
+  for (size_t i = 0; i < boxPos.size(); i++) {
     model = glm::translate(glm::mat4{1}, boxPos[i]);
     glm::vec3 v = (i == 0) ? glm::vec3{1, 0, 0}
                            : (i == 1 ? glm::vec3{0, 1, 0} : glm::vec3{0, 0, 1});
@@ -320,14 +331,14 @@ void renderPlane() {
   if (planeVAO == 0) {
     // clang-format off
     float planeVertices[] = {
-      // positions              // normals          // texcoords
-       100.0f,  0.0f,  100.0f,  0.0f, 100.0f, 0.0f, 100.0f,   0.0f,
-      -100.0f,  0.0f,  100.0f,  0.0f, 100.0f, 0.0f,   0.0f,   0.0f,
-      -100.0f,  0.0f, -100.0f,  0.0f, 100.0f, 0.0f,   0.0f, 100.0f,
+      // positions            // normals         // texcoords
+       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f, 10.0f,  0.0f,
+      -10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  0.0f,  0.0f,
+      -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  0.0f, 10.0f,
 
-       100.0f,  0.0f,  100.0f,  0.0f, 100.0f, 0.0f, 100.0f,   0.0f,
-      -100.0f,  0.0f, -100.0f,  0.0f, 100.0f, 0.0f,   0.0f, 100.0f,
-       100.0f,  0.0f, -100.0f,  0.0f, 100.0f, 0.0f, 100.0f, 100.0f
+       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f, 10.0f,  0.0f,
+      -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  0.0f, 10.0f,
+       10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f, 10.0f, 10.0f
     };
     // clang-format on
     glGenVertexArrays(1, &planeVAO);

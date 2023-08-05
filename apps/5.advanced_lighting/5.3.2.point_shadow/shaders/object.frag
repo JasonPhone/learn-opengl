@@ -12,19 +12,18 @@ uniform sampler2D texDiffuse;
 uniform samplerCube texShadow;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
-uniform float far_plane;
+uniform float farPlane;
 
 float fragInLight(vec3 fragPosition) {
   vec3 lightToFrag = fragPosition - lightPos;
   float firstHit = texture(texShadow, lightToFrag).r;
   // [0, 1] to real distance.
-  firstHit *= far_plane;
+  firstHit *= farPlane;
   float curHit = length(lightToFrag);
   float bias =
-      max(0.0015 * (1.0 - dot(fs_in.normal, -normalize(lightToFrag))), 0.0002);
+      max(0.030 * (1.0 - dot(fs_in.normal, -normalize(lightToFrag))), 0.020);
 
   float inLight = curHit - bias > firstHit ? 0.0 : 1.0;
-  fragColor = vec4(vec3(firstHit / far_plane), 1.0);
   return inLight;
 }
 
@@ -46,6 +45,6 @@ void main() {
   vec3 colorSpecular = spec * vec3(0.3);
 
   float inLight = fragInLight(fs_in.fragPos);
-  // fragColor = vec4(
-  //     colorAmbient + colorDiffuse * inLight + colorSpecular * inLight, 1.0);
+  fragColor = vec4(
+      colorAmbient + colorDiffuse * inLight + colorSpecular * inLight, 1.0);
 }
