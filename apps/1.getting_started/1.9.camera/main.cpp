@@ -1,15 +1,17 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#include "learn-opengl/image.h"
-#include "learn-opengl/gl_utility.h"
-#include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
+#include "learn-opengl/Shader.h"
+#include "learn-opengl/gl_utility.h"
+#include "learn-opengl/image.h"
+
 
 constexpr int SCREEN_W = 800;
 constexpr int SCREEN_H = 600;
@@ -28,7 +30,7 @@ Camera cam{camPos, camFront, camUp};
 float deltaTime = 0;
 float last_frame = 0;
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -36,7 +38,6 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = cam.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
     cam.move(MOVE_DIRECTION::FORWARD, deltaTime);
   }
@@ -56,11 +57,11 @@ void process_input(GLFWwindow *window) {
     cam.move(MOVE_DIRECTION::DOWN, deltaTime);
   }
 }
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   cam.turn(xpos, ypos);
 }
 
-void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double , double yoffset) {
   cam.zoom(yoffset);
 }
 
@@ -292,15 +293,14 @@ int main() {
 
     /****** Render ******/
     glm::mat4 view{1};
-    double time = glfwGetTime();
-    double radius = 10;
-    double cam_x = sin(time) * radius;
-    double cam_z = cos(time) * radius;
+    // double time = glfwGetTime();
+    // double radius = 10;
     view = cam.viewMatrix();
 
     glm::mat4 proj{1};
     GLuint loc;
-    proj = glm::perspective(glm::radians(cam.fov()), 1.0 * SCREEN_W / SCREEN_H, 0.1, 100.0);
+    proj = glm::perspective(glm::radians(cam.fov()), 1.0 * SCREEN_W / SCREEN_H,
+                            0.1, 100.0);
     loc = glGetUniformLocation(shader.ID, "view");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
 

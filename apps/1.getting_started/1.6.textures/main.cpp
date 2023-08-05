@@ -3,10 +3,12 @@
 #include <glad/glad.h>
 
 #include <iostream>
+
+#include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
-#include "learn-opengl/Shader.h"
-void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
+
+void framebuffer_size_callback(GLFWwindow*, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow* window) {
@@ -91,7 +93,7 @@ int main() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  image =loadImage("./awesomeface.png", &image_w, &image_h, &image_channel, 0);
+  image = loadImage("./awesomeface.png", &image_w, &image_h, &image_channel, 0);
   if (image) {
     // transfer texture data
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_w, image_h, 0, GL_RGBA,

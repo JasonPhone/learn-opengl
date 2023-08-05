@@ -4,13 +4,13 @@
 
 #include <iostream>
 
-#include "learn-opengl/image.h"
-#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
+#include "learn-opengl/gl_utility.h"
+
 
 using namespace std;
 // Vertex shader src
-void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow*, int, int) {
   // glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow* window) {

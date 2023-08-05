@@ -1,19 +1,21 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#include "learn-opengl/image.h"
-#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
+#include "learn-opengl/gl_utility.h"
+#include "learn-opengl/image.h"
+
 
 constexpr int SCREEN_W = 800;
 constexpr int SCREEN_H = 600;
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -245,7 +247,8 @@ int main() {
     for (int i = 0; i < 10; i++) {
       glm::mat4 model{1};
       model = glm::translate(model, cube_pos[i]);
-      model = glm::rotate(model, float(glfwGetTime() + 0.1 * i), glm::vec3{0.5, 1.0, 0});
+      model = glm::rotate(model, float(glfwGetTime() + 0.1 * i),
+                          glm::vec3{0.5, 1.0, 0});
       // model = glm::rotate(model, float(20.0 * i), glm::vec3{1, 0.3, 0.5});
       loc = glGetUniformLocation(shader.ID, "model");
       glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));

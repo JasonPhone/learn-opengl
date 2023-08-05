@@ -7,11 +7,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
-#include "learn-opengl/Shader.h"
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
