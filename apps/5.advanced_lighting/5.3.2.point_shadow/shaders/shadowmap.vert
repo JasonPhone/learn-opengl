@@ -2,7 +2,6 @@
 
 layout(location = 0) in vec3 vPos;
 
-uniform mat4 lightSpaceMat;
 uniform mat4 model;
 
-void main() { gl_Position = lightSpaceMat * model * vec4(vPos, 1.0); }
+void main() { gl_Position = model * vec4(vPos, 1.0); }
