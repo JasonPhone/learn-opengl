@@ -8,7 +8,6 @@
 
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
-#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
 
 #include <iostream>
@@ -26,7 +25,7 @@ float last_x = SCR_WIDTH / 2.0f;
 float last_y = SCR_HEIGHT / 2.0f;
 bool first_mouse = true;
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -34,7 +33,6 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = camera.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -48,10 +46,10 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
 }
-void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double , double yoffset) {
   camera.zoom(yoffset);
 }
 

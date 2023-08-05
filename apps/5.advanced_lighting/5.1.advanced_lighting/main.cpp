@@ -233,7 +233,6 @@ int main() {
                                       1.0 * SCREEN_W / SCREEN_H, 0.01, 100.0);
     glm::mat4 model{1};
     // model = glm::rotate(model, glm::radians(time) * 10, glm::vec3(0, 1, 0));
-    glm::mat4 normal_mat = glm::inverse(glm::transpose(model));
 
     shader_lighting.use();
     shader_lighting.setMat4fv("model", glm::value_ptr(model));

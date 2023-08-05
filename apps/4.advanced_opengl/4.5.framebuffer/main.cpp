@@ -5,15 +5,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <map>
+#include <vector>
 
-#include "learn-opengl/Shader.h"
 #include "learn-opengl/Camera.h"
+#include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
 
-#include <iostream>
-#include <vector>
-#include <map>
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 800;
@@ -98,7 +98,7 @@ float quad_vertices[] = {
    1.0f,  1.0f,  1.0f, 1.0f
 };
 // clang-format on
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -106,7 +106,7 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = camera.moveSpeed() * deltaTime;
+
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -120,10 +120,10 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
 }
-void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double , double yoffset) {
   camera.zoom(yoffset);
 }
 
@@ -160,7 +160,6 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
-
 
   // Configure global opengl state
   // -----------------------------
@@ -236,14 +235,14 @@ int main() {
   GLuint tex_colorbuffer;
   glGenTextures(1, &tex_colorbuffer);
   glBindTexture(GL_TEXTURE_2D, tex_colorbuffer);
-  glTexImage2D(GL_TEXTURE_2D,     // Target
-               0,                 // Level
-               GL_RGB,            // Internal format for OpenGL storage
-               SCR_WIDTH, SCR_HEIGHT,          // Width and height
-               0,                 // Border (always zero)
-               GL_RGB,            // Data format layout
-               GL_UNSIGNED_BYTE,  // Data format type
-               NULL               // Pointer to texture data
+  glTexImage2D(GL_TEXTURE_2D,          // Target
+               0,                      // Level
+               GL_RGB,                 // Internal format for OpenGL storage
+               SCR_WIDTH, SCR_HEIGHT,  // Width and height
+               0,                      // Border (always zero)
+               GL_RGB,                 // Data format layout
+               GL_UNSIGNED_BYTE,       // Data format type
+               NULL                    // Pointer to texture data
   );
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -255,9 +254,11 @@ int main() {
   GLuint render_buffer;
   glGenRenderbuffers(1, &render_buffer);
   glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH,
+                        SCR_HEIGHT);
   // Attach
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, render_buffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, render_buffer);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
   // Check framebuffers
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

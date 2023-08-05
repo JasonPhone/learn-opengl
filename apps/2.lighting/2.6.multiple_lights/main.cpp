@@ -33,7 +33,7 @@ glm::vec3 objColor(1.0f, 0.5f, 0.31f);
 float deltaTime = 0;
 float last_frame = 0;
 
-void framebuffer_size_callback(GLFWwindow *window, int w, int h) {
+void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
 void process_input(GLFWwindow *window) {
@@ -41,7 +41,6 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   // Camera move
-  float cam_speed = cam.moveSpeed() * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     cam.move(MOVE_DIRECTION::FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -55,11 +54,11 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     cam.move(MOVE_DIRECTION::DOWN, deltaTime);
 }
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   cam.turn(xpos, ypos);
 }
 
-void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void mouse_scroll_callback(GLFWwindow *, double , double yoffset) {
   cam.zoom(yoffset);
 }
 
@@ -222,7 +221,6 @@ int main() {
     deltaTime = cur_frame - last_frame;
     last_frame = cur_frame;
 
-    float time = glfwGetTime();
 
     /****** Input ******/
     process_input(window);
@@ -258,12 +256,12 @@ int main() {
       shader_cube.setVec3f("dir_light.diffuse", 0.2f, 0.2f, 0.2f);
       shader_cube.setVec3f("dir_light.specular", 0.5f, 0.5f, 0.5f);
       // PointLight
-      for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
         std::string light_name = "point_lights[";
-        light_name += '0' + i;
+        light_name += '0' + j;
         light_name += "].";
 
-        shader_cube.setVec3fv((light_name + "position").c_str(), glm::value_ptr(PointLight_pos[i]));
+        shader_cube.setVec3fv((light_name + "position").c_str(), glm::value_ptr(PointLight_pos[j]));
         shader_cube.setVec3f((light_name + "ambient").c_str(), 0.1f, 0.1f, 0.1f);
         shader_cube.setVec3f((light_name + "diffuse").c_str(), 0.3f, 0.3f, 0.3f);
         shader_cube.setVec3f((light_name + "specular").c_str(), 1.0f, 1.0f, 1.0f);
