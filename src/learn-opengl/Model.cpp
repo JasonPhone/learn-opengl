@@ -5,14 +5,14 @@
 #include <vector>
 
 #include "glm/fwd.hpp"
-#include "learn-opengl/stringformat.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
+#include "learn-opengl/stringformat.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "learn-opengl/Model.h"
 #include "learn-opengl/Shader.h"
+#include "tiny_obj_loader.h"
 
 static void processModel(const tinyobj::attrib_t &attrib,
                          const std::vector<tinyobj::shape_t> &shapes,
@@ -47,26 +47,25 @@ void Mesh::setupMesh() {
   glBindVertexArray(0);
 }
 void Mesh::draw(Shader const &shader) {
-  unsigned int num_tex_diffuse = 1;
-  unsigned int num_tex_specular = 1;
-  unsigned int num_tex_normal = 1;
-  unsigned int num_tex_height = 1;
+  unsigned int num_tex_diffuse = 0;
+  unsigned int num_tex_specular = 0;
+  unsigned int num_tex_normal = 0;
+  unsigned int num_tex_height = 0;
   for (unsigned int i = 0; i < mTextures.size(); i++) {
     glActiveTexture(GL_TEXTURE0 + i);
     // Generate the texture name
     std::string number;
     std::string name = mTextures[i].type;
     if (name == "texture_diffuse")
-      number = std::to_string(num_tex_diffuse++);
+      number = std::to_string(++num_tex_diffuse);
     else if (name == "texture_specular")
-      number = std::to_string(num_tex_specular++);
+      number = std::to_string(++num_tex_specular);
     else if (name == "texture_normal")
-      number = std::to_string(num_tex_normal++);
+      number = std::to_string(++num_tex_normal);
     else if (name == "texture_height")
-      number = std::to_string(num_tex_height++);
+      number = std::to_string(++num_tex_height);
 
     shader.setInt(("material." + name + number).c_str(), i);
-    // LOG("Set texture", ("material." + name + number).c_str());
     glBindTexture(GL_TEXTURE_2D, mTextures[i].id);
   }
   glActiveTexture(GL_TEXTURE0);
@@ -149,8 +148,8 @@ static void processModel(const tinyobj::attrib_t &attrib,
     // Diffuse.
     if (!materials[idxMat].diffuse_texname.empty()) {
       LOG << "diffuse ";
-      tex.id =
-          loadTexture((dir + "/" + materials[idxMat].diffuse_texname).c_str());
+      tex.id = loadTexture(
+          (dir + "/" + materials[idxMat].diffuse_texname).c_str(), true);
       tex.type = "texture_diffuse";
       tex.path = materials[idxMat].diffuse_texname;
       textures.push_back(tex);
