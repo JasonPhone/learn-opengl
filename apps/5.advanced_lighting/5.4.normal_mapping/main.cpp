@@ -15,7 +15,6 @@
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
-#include "learn-opengl/prefab.h"
 
 constexpr int SCREEN_W = 1024;
 constexpr int SCREEN_H = 768;
@@ -32,7 +31,6 @@ float deltaTime = 0;
 float lastFrame = 0;
 
 // Data
-std::vector<glm::vec3> boxPos;
 void framebuffer_size_callback(GLFWwindow *, int w, int h);
 void process_input(GLFWwindow *window);
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos);
@@ -96,7 +94,7 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   /// @brief build shader program
-  Shader shaderObject{"../shaders/object.vert", "../shaders/object.frag"};
+  Shader shaderPlane{"../shaders/plane.vert", "../shaders/plane.frag"};
   // Shader shaderLight{"../shaders/light.vert",
   //                     "../shaders/light.frag"};
   Shader shaderDepthMap{"../shaders/shadowmap.vert",
@@ -104,20 +102,12 @@ int main() {
                         "../shaders/shadowmap.frag"};
 
   /// @brief Textures
-  GLuint texWood = loadTexture("../textures/wood.png", true);
-  shaderObject.use();
-  shaderObject.setInt("texDiffuse", 0);
-  shaderObject.setInt("texShadow", 1);
-  for (int i = 0; i < 20; i++) {
-    glm::vec3 pos{0};
-    pos.x = (1.0 * rand() / RAND_MAX - 0.5) * 5;
-    pos.y = (1.0 * rand() / RAND_MAX - 0.5) * 5;
-    pos.z = (1.0 * rand() / RAND_MAX - 0.5) * 5;
-    pos.x += pos.x < 0 ? -2 : 2;
-    pos.y += pos.y < 0 ? -2 : 2;
-    pos.z += pos.z < 0 ? -2 : 2;
-    boxPos.push_back(pos);
-  }
+  GLuint texBrickWall = loadTexture("../textures/brickwall.jpg", true);
+  GLuint mapBrickWallNormal = loadTexture("../textures/brickwall_normal.jpg");
+  shaderPlane.use();
+  shaderPlane.setInt("texDiffuse", 0);
+  shaderPlane.setInt("shadowMap", 1);
+  shaderPlane.setInt("normalMap", 2);
 
   /// @brief Shadow map.
   constexpr int SHADOW_W = 2048, SHADOW_H = 2048;
@@ -153,24 +143,28 @@ int main() {
 
     /****** Logic ******/
     glfwPollEvents();
-    float cur_frame = glfwGetTime();
-    deltaTime = cur_frame - lastFrame;
-    lastFrame = cur_frame;
+    float curTime = glfwGetTime();
+    deltaTime = curTime - lastFrame;
+    lastFrame = curTime;
+
+    lightPos = glm::vec3{lightPos.x, glm::sin(curTime), lightPos.z};
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     {
-      ImGui::Begin("Point Shadow");
+      ImGui::Begin("Normal Mapping");
 
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
+      ImGui::Text("Light position: (%.2f, %.2f, %.2f)", lightPos.x, lightPos.y,
+                  lightPos.z);
       ImGui::Text("Camera position: (%.2f, %.2f, %.2f)",
                   camera.cameraPosition().x, camera.cameraPosition().y,
                   camera.cameraPosition().z);
-      ImGui::Text("Camera front: (%.2f, %.2f, %.2f)", camera.cameraFront().x,
+      ImGui::Text("Camera facing: (%.2f, %.2f, %.2f)", camera.cameraFront().x,
                   camera.cameraFront().y, camera.cameraFront().z);
 
       ImGui::End();
@@ -226,17 +220,19 @@ int main() {
     proj = glm::perspective(glm::radians(camera.fov()),
                             1.0 * SCREEN_W / SCREEN_H, zNear, zFar);
     glm::mat4 view = camera.viewMatrix();
-    shaderObject.use();
-    shaderObject.setMat4fv("view", glm::value_ptr(view));
-    shaderObject.setMat4fv("proj", glm::value_ptr(proj));
-    shaderObject.setVec3fv("lightPos", glm::value_ptr(lightPos));
-    shaderObject.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
-    shaderObject.setFloat("farPlane", zFar);
+    shaderPlane.use();
+    shaderPlane.setMat4fv("view", glm::value_ptr(view));
+    shaderPlane.setMat4fv("proj", glm::value_ptr(proj));
+    shaderPlane.setVec3fv("lightPos", glm::value_ptr(lightPos));
+    shaderPlane.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
+    shaderPlane.setFloat("farPlane", zFar);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texWood);
+    glBindTexture(GL_TEXTURE_2D, texBrickWall);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
-    renderScene(shaderObject);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, mapBrickWallNormal);
+    renderScene(shaderPlane);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();
@@ -285,46 +281,11 @@ void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
 }
 void renderScene(const Shader &shader) {
   // Box.
-  glm::mat4 model = glm::scale(glm::mat4{1.0}, glm::vec3{10, 10, 10});
+  glm::mat4 model = glm::mat4{1.0};
+  model = glm::translate(model, glm::vec3{0, 0, -2});
+  model = glm::rotate(model, glm::radians(90.f), glm::vec3{1, 0, 0});
   shader.setMat4fv("model", glm::value_ptr(model));
-  shader.setBool("reverseNormal", true);
-  renderCube();
-  // Cubes
-  shader.setBool("reverseNormal", false);
-  for (size_t i = 0; i < boxPos.size(); i++) {
-    model = glm::translate(glm::mat4{1}, boxPos[i]);
-    glm::vec3 v = (i == 0) ? glm::vec3{1, 0, 0}
-                           : (i == 1 ? glm::vec3{0, 1, 0} : glm::vec3{0, 0, 1});
-    model = glm::rotate(model, glm::radians(i * 10.0f + 10), v);
-    model = glm::scale(model, {0.5, 0.5, 0.5});
-    shader.setMat4fv("model", glm::value_ptr(model));
-    renderCube();
-  }
-}
-GLuint cubeVAO = 0;
-GLuint cubeVBO = 0;
-void renderCube() {
-  if (cubeVAO == 0) {
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-    glBindVertexArray(cubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(prefab::cube), prefab::cube,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE,
-                          (void *)(0));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE,
-                          (void *)(3 * FLOAT_SIZE));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE,
-                          (void *)(6 * FLOAT_SIZE));
-    glBindVertexArray(0);
-  }
-  glBindVertexArray(cubeVAO);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  glBindVertexArray(0);
+  renderPlane();
 }
 GLuint planeVAO, planeVBO;
 void renderPlane() {
@@ -332,13 +293,13 @@ void renderPlane() {
     // clang-format off
     float planeVertices[] = {
       // positions            // normals         // texcoords
-       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f, 10.0f,  0.0f,
-      -10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f,  0.0f,  0.0f,
-      -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  0.0f, 10.0f,
+       1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+      -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+      -1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
 
-       10.0f,  0.0f,  10.0f,  0.0f, 10.0f, 0.0f, 10.0f,  0.0f,
-      -10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f,  0.0f, 10.0f,
-       10.0f,  0.0f, -10.0f,  0.0f, 10.0f, 0.0f, 10.0f, 10.0f
+       1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+      -1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+       1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f
     };
     // clang-format on
     glGenVertexArrays(1, &planeVAO);
@@ -360,35 +321,5 @@ void renderPlane() {
   }
   glBindVertexArray(planeVAO);
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  glBindVertexArray(0);
-}
-GLuint quadVAO = 0;
-GLuint quadVBO;
-void renderQuad() {
-  if (quadVAO == 0) {
-    // clang-format off
-        float quadVertices[] = {
-            // positions        // texture Coords
-            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        };
-    // clang-format on
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *)(3 * sizeof(float)));
-  }
-  glBindVertexArray(quadVAO);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
 }

@@ -9,14 +9,15 @@ in VS_OUT {
 fs_in;
 
 uniform sampler2D texDiffuse;
-uniform samplerCube texShadow;
+uniform sampler2D normalMap;
+uniform samplerCube shadowMap;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform float farPlane;
 
 float fragInLight(vec3 fragPosition) {
   vec3 lightToFrag = fragPosition - lightPos;
-  float firstHit = texture(texShadow, lightToFrag).r;
+  float firstHit = texture(shadowMap, lightToFrag).r;
   // [0, 1] to real distance.
   firstHit *= farPlane;
   float curHit = length(lightToFrag);
@@ -34,6 +35,8 @@ void main() {
   // Diffuse
   vec3 wi = normalize(lightPos - fs_in.fragPos);
   vec3 n = normalize(fs_in.normal);
+  n = texture(normalMap, fs_in.texCoords).rgb;
+  n = normalize(n * 2.0 - 1.0);
   float diff = max(0, dot(n, wi));
   vec3 colorDiffuse = diff * color;
   // Specular
