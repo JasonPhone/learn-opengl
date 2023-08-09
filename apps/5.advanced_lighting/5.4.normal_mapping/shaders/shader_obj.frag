@@ -9,8 +9,21 @@ in GS_OUT {
 fs_in;
 in vec3 fT, fB;
 
-uniform sampler2D texDiffuse;
-uniform sampler2D normalMap;
+struct Material {
+  sampler2D texture_diffuse1;
+  sampler2D texture_diffuse2;
+
+  sampler2D texture_specular1;
+  sampler2D texture_specular2;
+
+  sampler2D texture_normal1;
+  sampler2D texture_normal2;
+
+  sampler2D texture_height1;
+  sampler2D texture_height2;
+};
+uniform Material material;
+
 uniform samplerCube shadowMap;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -33,7 +46,7 @@ float fragInLight(vec3 fragPosition) {
 }
 
 void main() {
-  vec3 color = texture(texDiffuse, fs_in.texCoords).rgb;
+  vec3 color = texture(material.texture_diffuse1, fs_in.texCoords).rgb;
   // Use interpolated normal.
   vec3 N = fs_in.faceWorldNormal;
   vec3 T = normalize(fT - dot(fT, N) * N);
@@ -44,9 +57,9 @@ void main() {
 
   // Diffuse
   vec3 wi = normalize(lightPos - fs_in.fragWorldPos);
-  vec3 n = normalize(texture(normalMap, fs_in.texCoords).rgb);
-  n = normalize(TBN * (n * 2.0 - 1.0));
-  float diff = max(0, dot(n, wi));
+  vec3 ddn = normalize(texture(material.texture_normal1, fs_in.texCoords).rgb);
+  ddn = normalize(TBN * (ddn * 2.0 - 1.0));
+  float diff = max(0, dot(ddn, wi));
   vec3 colorDiffuse = diff * color;
 
   // Specular
@@ -54,8 +67,9 @@ void main() {
   float spec = 0;
   //// Blinn-Phong
   vec3 wHalf = normalize(wi + wo);
-  spec = pow(max(0, dot(n, wHalf)), 64);
-  vec3 colorSpecular = spec * vec3(0.3);
+  spec = pow(max(0, dot(ddn, wHalf)), 64);
+  vec3 colorSpecular =
+      spec * texture(material.texture_specular1, fs_in.texCoords).rgb;
 
   float inLight = fragInLight(fs_in.fragWorldPos);
   fragColor = vec4(

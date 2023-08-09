@@ -12,6 +12,7 @@
 #include "ImGui/imgui.h"
 //
 #include "learn-opengl/Camera.h"
+#include "learn-opengl/Model.h"
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
@@ -25,7 +26,7 @@ glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera camera{camPos, camFront, camUp};
 
-glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+glm::vec3 lightPos(0.0f, 0.0f, 3.0f);
 
 float deltaTime = 0;
 float lastFrame = 0;
@@ -95,11 +96,12 @@ int main() {
 
   /// @brief build shader program
   // Shader shaderPlane{"../shaders/plane.vert", "../shaders/plane.frag"};
-  Shader shaderPlane{"../shaders/normal_mapping.vert",
-                     "../shaders/normal_mapping.geom",
-                     "../shaders/normal_mapping.frag"};
-  // Shader shaderLight{"../shaders/light.vert",
-  //                     "../shaders/light.frag"};
+  Shader shaderPlane{"../shaders/shader_plane.vert",
+                     "../shaders/shader_plane.geom",
+                     "../shaders/shader_plane.frag"};
+  Shader shaderObject{"../shaders/shader_obj.vert",
+                      "../shaders/shader_obj.geom",
+                      "../shaders/shader_obj.frag"};
   Shader shaderDepthMap{"../shaders/shadowmap.vert",
                         "../shaders/shadowmap.geom",
                         "../shaders/shadowmap.frag"};
@@ -111,7 +113,11 @@ int main() {
   shaderPlane.setInt("texDiffuse", 0);
   shaderPlane.setInt("shadowMap", 1);
   shaderPlane.setInt("normalMap", 2);
+  shaderObject.use();
+  shaderObject.setInt("shadowMap", 8);
 
+  /// @brief Models.
+  Model modelSuit{"../models/nanosuit/nanosuit.obj"};
   /// @brief Shadow map.
   constexpr int SHADOW_W = 2048, SHADOW_H = 2048;
   GLuint depthMapFBO;
@@ -150,7 +156,8 @@ int main() {
     deltaTime = curTime - lastFrame;
     lastFrame = curTime;
 
-    // lightPos = glm::vec3{lightPos.x, glm::sin(curTime), lightPos.z};
+    // lightPos = glm::vec3{lightPos.x, glm::sin(curTime) * 5, lightPos.z};
+    lightPos = glm::vec3{lightPos.x, lightPos.y, glm::sin(curTime) * 5};
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -209,15 +216,19 @@ int main() {
         std::string name = "shadowMats[" + std::to_string(i) + "]";
         shaderDepthMap.setMat4fv(name.c_str(), &(shadowTransforms[i][0][0]));
       }
-      // shaderDepthMap.setMat4fv("shadowMats",
-      //                          glm::value_ptr(shadowTransforms[0]));
       shaderDepthMap.setVec3fv("lightPos", glm::value_ptr(lightPos));
       shaderDepthMap.setFloat("farPlane", zFar);
       renderScene(shaderDepthMap);
+      glm::mat4 model = glm::mat4{1};
+      model = glm::translate(model, glm::vec3{0, 0, -1});
+      model = glm::scale(model, glm::vec3{0.2, 0.2, 0.2});
+      shaderDepthMap.setMat4fv("model", glm::value_ptr(model));
+      modelSuit.draw(shaderDepthMap);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /// @brief Common rendering pass.
+    // Draw brickwalls.
     glViewport(0, 0, SCREEN_W, SCREEN_H);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     proj = glm::perspective(glm::radians(camera.fov()),
@@ -229,6 +240,7 @@ int main() {
     shaderPlane.setVec3fv("lightPos", glm::value_ptr(lightPos));
     shaderPlane.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
     shaderPlane.setFloat("farPlane", zFar);
+    shaderPlane.setBool("reverseNormal", false);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texBrickWall);
     glActiveTexture(GL_TEXTURE1);
@@ -236,6 +248,22 @@ int main() {
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, mapBrickWallNormal);
     renderScene(shaderPlane);
+
+    // Draw nanosuit.
+    shaderObject.use();
+    glm::mat4 model = glm::mat4{1};
+    model = glm::translate(model, glm::vec3{0, 0, -1});
+    model = glm::scale(model, glm::vec3{0.2, 0.2, 0.2});
+    shaderObject.setMat4fv("model", glm::value_ptr(model));
+    shaderObject.setMat4fv("view", glm::value_ptr(view));
+    shaderObject.setMat4fv("proj", glm::value_ptr(proj));
+    shaderObject.setVec3fv("lightPos", glm::value_ptr(lightPos));
+    shaderObject.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
+    shaderObject.setFloat("farPlane", zFar);
+    shaderObject.setBool("reverseNormal", false);
+    glActiveTexture(GL_TEXTURE0 + 8);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap);
+    modelSuit.draw(shaderObject);
 
     if (glCheckError() != GL_NO_ERROR) break;
     ImGui::Render();
@@ -284,17 +312,16 @@ void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
 }
 void renderScene(const Shader &shader) {
   // Box.
-  glm::mat4 model = glm::mat4{1.0};
-  model = glm::translate(model, glm::vec3{0, 0, -2});
-  // float angle = glm::radians(glfwGetTime());
   float angle = glm::radians(90.f);
+  // float angle = glm::radians(glfwGetTime());
+  glm::mat4 model = glm::mat4{1.0};
+  model = glm::translate(model, glm::vec3{0, 0, -5});
   model = glm::rotate(model, angle, glm::vec3{1, 0, 0});
+  model = glm::scale(model, glm::vec3{3, 3, 3});
   shader.setMat4fv("model", glm::value_ptr(model));
   renderPlane();
-
-  model = glm::translate(glm::mat4{1}, glm::vec3{0, 0, -1.5});
+  model = glm::translate(glm::mat4{1}, glm::vec3{0, 0, -2});
   model = glm::rotate(model, angle, glm::vec3{1, 0, 0});
-  model = glm::scale(model, glm::vec3{0.3, 0.3, 0.3});
   shader.setMat4fv("model", glm::value_ptr(model));
   renderPlane();
 }
