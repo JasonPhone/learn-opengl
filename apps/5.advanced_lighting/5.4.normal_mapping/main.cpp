@@ -94,7 +94,10 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   /// @brief build shader program
-  Shader shaderPlane{"../shaders/plane.vert", "../shaders/plane.frag"};
+  // Shader shaderPlane{"../shaders/plane.vert", "../shaders/plane.frag"};
+  Shader shaderPlane{"../shaders/normal_mapping.vert",
+                     "../shaders/normal_mapping.geom",
+                     "../shaders/normal_mapping.frag"};
   // Shader shaderLight{"../shaders/light.vert",
   //                     "../shaders/light.frag"};
   Shader shaderDepthMap{"../shaders/shadowmap.vert",
@@ -147,7 +150,7 @@ int main() {
     deltaTime = curTime - lastFrame;
     lastFrame = curTime;
 
-    lightPos = glm::vec3{lightPos.x, glm::sin(curTime), lightPos.z};
+    // lightPos = glm::vec3{lightPos.x, glm::sin(curTime), lightPos.z};
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -283,7 +286,15 @@ void renderScene(const Shader &shader) {
   // Box.
   glm::mat4 model = glm::mat4{1.0};
   model = glm::translate(model, glm::vec3{0, 0, -2});
-  model = glm::rotate(model, glm::radians(90.f), glm::vec3{1, 0, 0});
+  // float angle = glm::radians(glfwGetTime());
+  float angle = glm::radians(90.f);
+  model = glm::rotate(model, angle, glm::vec3{1, 0, 0});
+  shader.setMat4fv("model", glm::value_ptr(model));
+  renderPlane();
+
+  model = glm::translate(glm::mat4{1}, glm::vec3{0, 0, -1.5});
+  model = glm::rotate(model, angle, glm::vec3{1, 0, 0});
+  model = glm::scale(model, glm::vec3{0.3, 0.3, 0.3});
   shader.setMat4fv("model", glm::value_ptr(model));
   renderPlane();
 }
