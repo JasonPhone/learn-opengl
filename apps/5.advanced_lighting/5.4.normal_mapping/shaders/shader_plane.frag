@@ -44,8 +44,8 @@ void main() {
 
   // Diffuse
   vec3 wi = normalize(lightPos - fs_in.fragWorldPos);
-  vec3 n = normalize(texture(normalMap, fs_in.texCoords).rgb);
-  n = normalize(TBN * (n * 2.0 - 1.0));
+  vec3 n = texture(normalMap, fs_in.texCoords).rgb;
+  n = normalize((n * 2.0 - 1.0));
   float diff = max(0, dot(n, wi));
   vec3 colorDiffuse = diff * color;
 
