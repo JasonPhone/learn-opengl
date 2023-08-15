@@ -26,6 +26,10 @@ glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera camera{camPos, camFront, camUp};
 
 glm::vec3 lightPos(0.0f, 0.0f, 2.0f);
+// Up and down key to adjust.
+float heightScale = 0;
+// Parallax mapping method;
+int parallaxMethod = 1;
 
 float deltaTime = 0;
 float lastFrame = 0;
@@ -44,18 +48,18 @@ int main() {
   /**
    * @brief init glfw window
    */
-  glfwInit();                                     // init GLFW
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // OpenGL 3.x
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);  // OpenGL x.3
+  glfwInit();                                    // init GLFW
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // OpenGL 3.x
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // OpenGL x.3
   glfwWindowHint(GLFW_OPENGL_PROFILE,
-                 GLFW_OPENGL_CORE_PROFILE);  // use core profile
+                 GLFW_OPENGL_CORE_PROFILE); // use core profile
 
   // Enable MSAA.
   glfwWindowHint(GLFW_SAMPLES, 4);
   // Get the glfw window
   GLFWwindow *window =
       glfwCreateWindow(SCREEN_W, SCREEN_H, "LearnOpenGL", NULL, NULL);
-  if (window == NULL) {  // check
+  if (window == NULL) { // check
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
     return -1;
@@ -100,11 +104,9 @@ int main() {
                      "../shaders/shader_plane.frag"};
 
   /// @brief Textures
-  GLuint texBrickWall = loadTexture("../textures/brickwall.jpg", true);
-  GLuint mapBrickWallNormal =
-      loadTexture("../textures/brickwall_normal.jpg", false);
-  GLuint mapBrickWallDisplace =
-      loadTexture("../textures/brickwall_disp.jpg", false);
+  GLuint texDiff = loadTexture("../textures/box_diff.png", true);
+  GLuint mapNormal = loadTexture("../textures/box_normal.png", false);
+  GLuint mapDisp = loadTexture("../textures/box_disp.png", false);
   shaderPlane.use();
   shaderPlane.setInt("texDiffuse", 0);
   shaderPlane.setInt("mapNormal", 1);
@@ -126,9 +128,10 @@ int main() {
 
     // lightPos = glm::vec3{lightPos.x, glm::sin(curTime) * 5, lightPos.z};
     lightPos = glm::vec3{
-        glm::sin(curTime) * 5,  //
-        lightPos.y,             //
-        lightPos.z              //
+        // glm::sin(curTime) * 5, //
+        lightPos.x, //
+        lightPos.y, //
+        lightPos.z  //
     };
 
     // Start the Dear ImGui frame
@@ -148,6 +151,8 @@ int main() {
                   camera.cameraPosition().z);
       ImGui::Text("Camera facing: (%.2f, %.2f, %.2f)", camera.cameraFront().x,
                   camera.cameraFront().y, camera.cameraFront().z);
+      ImGui::Text("Height scale: %.5f", heightScale);
+      ImGui::Text("Parallax method: %d", parallaxMethod);
 
       ImGui::End();
     }
@@ -168,16 +173,19 @@ int main() {
     shaderPlane.setVec3fv("lightPos", glm::value_ptr(lightPos));
     shaderPlane.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
     shaderPlane.setFloat("farPlane", zFar);
+    shaderPlane.setFloat("heightScale", heightScale);
+    shaderPlane.setInt("parallaxMethod", parallaxMethod);
     shaderPlane.setBool("reverseNormal", false);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texBrickWall);
+    glBindTexture(GL_TEXTURE_2D, texDiff);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mapBrickWallNormal);
+    glBindTexture(GL_TEXTURE_2D, mapNormal);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, mapBrickWallDisplace);
+    glBindTexture(GL_TEXTURE_2D, mapDisp);
     renderScene(shaderPlane);
 
-    if (glCheckError() != GL_NO_ERROR) break;
+    if (glCheckError() != GL_NO_ERROR)
+      break;
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
@@ -214,6 +222,16 @@ void process_input(GLFWwindow *window) {
     camera.move(MOVE_DIRECTION::UP, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    heightScale = heightScale + 0.0001 > 0.5 ? 0.5 : heightScale + 0.0001;
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    heightScale = heightScale - 0.0001 < 0 ? 0 : heightScale - 0.0001;
+  if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    parallaxMethod = 1;
+  if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    parallaxMethod = 2;
+  if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    parallaxMethod = 3;
 }
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
