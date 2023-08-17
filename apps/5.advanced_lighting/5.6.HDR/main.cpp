@@ -289,8 +289,22 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
     hdr = 3;
 }
-void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
-  camera.turn(xpos, ypos);
+double lastX, lastY;
+bool firstMouse = true;
+void mouse_move_callback(GLFWwindow *, double xposIn, double yposIn) {
+  float xpos = static_cast<float>(xposIn);
+  float ypos = static_cast<float>(yposIn);
+  if (firstMouse) {
+    lastX = xpos;
+    lastY = ypos;
+    firstMouse = false;
+  }
+  float xoffset = xpos - lastX;
+  // reversed since y-coordinates go from bottom to top
+  float yoffset = lastY - ypos;
+  lastX = xpos;
+  lastY = ypos;
+  camera.turn(xoffset, yoffset);
 }
 
 void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {

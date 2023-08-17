@@ -16,7 +16,7 @@
 enum class MOVE_DIRECTION { RIGHT, LEFT, UP, DOWN, FORWARD, BACKWARD };
 
 class Camera {
- public:
+public:
   // Camera() = delete;
   // Camera(Camera const &) = delete;
   /**
@@ -31,7 +31,7 @@ class Camera {
    */
   Camera(glm::vec3 pos = glm::vec3{0, 0, 0},
          glm::vec3 front = glm::vec3{0, 0, -1},
-         glm::vec3 up = glm::vec3{0, 1, 0}, double pitch = 0, double yaw = 0);
+         glm::vec3 up = glm::vec3{0, 1, 0});
   /**
    * @brief Move the camera by params.
    * The real distance is decided by the delta time and speed.
@@ -50,27 +50,27 @@ class Camera {
    * @param xpos Current X position of cursor.
    * @param ypos Current Y position of cursor.
    */
-  void turn(double xpos, double ypos);
-  void turnDelta(double xoffset, double yoffset) {
-    yoffset = -yoffset;
+  void turn(double xoffset, double yoffset);
+  // void turn(double xoffset, double yoffset) {
+  //   yoffset = -yoffset;
 
-    float sensitivity = turnSensitivity();
-    m_camera_pitch += sensitivity * yoffset;
-    m_camera_yaw += sensitivity * xoffset;
+  //   float sensitivity = turnSensitivity();
+  //   mCameraPitch += sensitivity * yoffset;
+  //   mCameraYaw += sensitivity * xoffset;
 
-    // Restrict the pitch range
-    m_camera_pitch = glm::clamp(m_camera_pitch, -89.9, 89.9);
+  //   // Restrict the pitch range
+  //   mCameraPitch = glm::clamp(mCameraPitch, -89.9, 89.9);
 
-    glm::vec3 front;
-    front.x =
-        cos(glm::radians(m_camera_pitch)) * sin(glm::radians(m_camera_yaw));
-    front.y = sin(glm::radians(m_camera_pitch));
-    front.z =
-        -cos(glm::radians(m_camera_pitch)) * cos(glm::radians(m_camera_yaw));
+  //   glm::vec3 front;
+  //   front.x =
+  //       cos(glm::radians(mCameraPitch)) * sin(glm::radians(mCameraYaw));
+  //   front.y = sin(glm::radians(mCameraPitch));
+  //   front.z =
+  //       -cos(glm::radians(mCameraPitch)) * cos(glm::radians(mCameraYaw));
 
-    m_cameraFront = front;
-    m_camera_right = glm::normalize(glm::cross(m_cameraFront, m_camera_up));
-  }
+  //   mCameraFront = front;
+  //   mCameraRight = glm::normalize(glm::cross(mCameraFront, mCameraUp));
+  // }
   /**
    * @brief Camera zoom in-out.
    *
@@ -117,16 +117,18 @@ class Camera {
    *
    * @return glm::vec3 Position.
    */
-  glm::vec3 cameraPosition() const;
-  glm::vec3 cameraFront() const;
+  glm::vec3 cameraPosition() const { return mCameraPos; }
+  glm::vec3 cameraFront() const { return mCameraFront; }
+  glm::vec3 cameraUp() const { return mCameraUp; }
+  glm::vec3 cameraRight() const { return mCameraRight; }
 
- private:
-  bool m_mouse_first_capture;
-  double m_last_xpos, m_last_ypos;
-  double m_camera_pitch, m_camera_yaw, m_camera_fov;
-  double m_move_speed, m_turn_sensitivity;
-  glm::vec3 m_camera_pos;
-  glm::vec3 m_cameraFront;
-  glm::vec3 m_camera_up;
-  glm::vec3 m_camera_right;  // Auxiliary vector
+private:
+  void updateVectors();
+  double mCameraPitch, mCameraYaw, mCameraFov;
+  double mMoveSpeed, mTurnSeneitivity;
+  glm::vec3 mCameraPos;
+  glm::vec3 mWorldUp;
+  glm::vec3 mCameraFront;
+  glm::vec3 mCameraUp;
+  glm::vec3 mCameraRight; // Auxiliary vector
 };

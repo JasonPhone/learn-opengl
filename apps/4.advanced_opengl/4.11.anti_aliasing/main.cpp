@@ -11,8 +11,9 @@
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
 #include "learn-opengl/Camera.h"
-#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Shader.h"
+#include "learn-opengl/gl_utility.h"
+
 
 constexpr int SCREEN_W = 800;
 constexpr int SCREEN_H = 600;
@@ -98,10 +99,14 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
   // Camera turn.
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -2);
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 2);
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-2, 0);
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(2, 0);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    camera.turn(0, 20);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    camera.turn(0, -20);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    camera.turn(-20, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    camera.turn(20, 0);
 }
 void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
   camera.turn(xpos, ypos);
@@ -115,18 +120,18 @@ int main() {
   /**
    * @brief init glfw window
    */
-  glfwInit();                                     // init GLFW
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // OpenGL 3.x
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);  // OpenGL x.3
+  glfwInit();                                    // init GLFW
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // OpenGL 3.x
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // OpenGL x.3
   glfwWindowHint(GLFW_OPENGL_PROFILE,
-                 GLFW_OPENGL_CORE_PROFILE);  // use core profile
+                 GLFW_OPENGL_CORE_PROFILE); // use core profile
 
   // Enable MSAA.
   glfwWindowHint(GLFW_SAMPLES, 4);
   // Get the glfw window
   GLFWwindow *window =
       glfwCreateWindow(SCREEN_W, SCREEN_H, "LearnOpenGL", NULL, NULL);
-  if (window == NULL) {  // check
+  if (window == NULL) { // check
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
     return -1;
@@ -202,9 +207,9 @@ int main() {
   glEnable(GL_MULTISAMPLE);
   // Render loop
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0., 0., 0., 1.0);  // rgba, used to clear viewport
-    glClear(GL_COLOR_BUFFER_BIT |   // Clear color buffer
-            GL_DEPTH_BUFFER_BIT);   // Clear depth buffer
+    glClearColor(0., 0., 0., 1.0); // rgba, used to clear viewport
+    glClear(GL_COLOR_BUFFER_BIT |  // Clear color buffer
+            GL_DEPTH_BUFFER_BIT);  // Clear depth buffer
 
     /****** Input ******/
     process_input(window);
@@ -246,8 +251,7 @@ int main() {
     shader_cube.setMat4fv("proj", glm::value_ptr(proj));
     shader_cube.setMat4fv("model", glm::value_ptr(model));
     shader_cube.setMat4fv("normal_mat", glm::value_ptr(normal_mat));
-    shader_cube.setVec3fv("view_pos",
-                           glm::value_ptr(camera.cameraPosition()));
+    shader_cube.setVec3fv("view_pos", glm::value_ptr(camera.cameraPosition()));
 
     shader_cube.setVec3f("mat.ambient", 1.0f, 0.5f, 0.31f);
     shader_cube.setVec3f("mat.diffuse", 1.0f, 0.5f, 0.31f);
@@ -272,10 +276,11 @@ int main() {
     shader_light.setMat4fv("model", glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    if (glCheckError() != GL_NO_ERROR) break;
+    if (glCheckError() != GL_NO_ERROR)
+      break;
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(window);  // We use double buffer
+    glfwSwapBuffers(window); // We use double buffer
   }
 
   printf("clean\n");

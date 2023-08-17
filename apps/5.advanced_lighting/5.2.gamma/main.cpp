@@ -66,10 +66,14 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
   // Camera turn.
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -4);
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 4);
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-4, 0);
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(4, 0);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    camera.turn(0, 20);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    camera.turn(0, -20);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    camera.turn(-20, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    camera.turn(20, 0);
   // Shading switch.
   if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
     if (blinnState == 0)

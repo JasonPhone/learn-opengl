@@ -13,9 +13,9 @@
 #include "ImGui/backend/imgui_impl_opengl3.h"
 #include "ImGui/imgui.h"
 #include "learn-opengl/Camera.h"
-#include "learn-opengl/gl_utility.h"
 #include "learn-opengl/Model.h"
 #include "learn-opengl/Shader.h"
+#include "learn-opengl/gl_utility.h"
 
 // Settings
 constexpr unsigned int SCR_WIDTH = 900;
@@ -44,9 +44,24 @@ float points[] = {
 void framebuffer_size_callback(GLFWwindow *, int w, int h) {
   glViewport(0, 0, w, h);
 }
-void mouse_move_callback(GLFWwindow *, double xpos, double ypos) {
-  camera.turn(xpos * 1.5, ypos * 1.5);
+double lastX, lastY;
+bool firstMouse;
+void mouse_move_callback(GLFWwindow *, double xposIn, double yposIn) {
+  float xpos = static_cast<float>(xposIn);
+  float ypos = static_cast<float>(yposIn);
+  if (firstMouse) {
+    lastX = xpos;
+    lastY = ypos;
+    firstMouse = false;
+  }
+  float xoffset = xpos - lastX;
+  // reversed since y-coordinates go from bottom to top
+  float yoffset = lastY - ypos;
+  lastX = xpos;
+  lastY = ypos;
+  camera.turn(xoffset, yoffset);
 }
+
 void mouse_scroll_callback(GLFWwindow *, double, double yoffset) {
   camera.zoom(yoffset);
 }
@@ -68,10 +83,14 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     camera.move(MOVE_DIRECTION::DOWN, delta_time);
   // Camera turn.
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) camera.turnDelta(0, -2);
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) camera.turnDelta(0, 2);
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) camera.turnDelta(-2, 0);
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) camera.turnDelta(2, 0);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    camera.turn(0, 20);
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    camera.turn(0, -20);
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    camera.turn(-20, 0);
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    camera.turn(20, 0);
 }
 void normalDraw(GLFWwindow *window);
 void instancedDraw(GLFWwindow *window);
@@ -194,10 +213,18 @@ void normalDraw(GLFWwindow *window) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     {
-      ImGui::Begin("Normal");
-
+      ImGui::Begin("Instancing");
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      ImGui::Text("Camera position: (%.2f, %.2f, %.2f)",
+                  camera.cameraPosition().x, camera.cameraPosition().y,
+                  camera.cameraPosition().z);
+      ImGui::Text("Camera front: (%.2f, %.2f, %.2f)", camera.cameraFront().x,
+                  camera.cameraFront().y, camera.cameraFront().z);
+      ImGui::Text("Camera up: (%.2f, %.2f, %.2f)", camera.cameraUp().x,
+                  camera.cameraUp().y, camera.cameraUp().z);
+      ImGui::Text("Camera right: (%.2f, %.2f, %.2f)", camera.cameraRight().x,
+                  camera.cameraRight().y, camera.cameraRight().z);
 
       ImGui::End();
     }
@@ -213,7 +240,8 @@ void normalDraw(GLFWwindow *window) {
     glm::mat4 view = camera.viewMatrix();
     shader.use();
     shader.setMat4fv("projection", glm::value_ptr(projection));
-    if (glCheckError() != GL_NO_ERROR) break;
+    if (glCheckError() != GL_NO_ERROR)
+      break;
     shader.setMat4fv("view", glm::value_ptr(view));
 
     // draw planet
@@ -229,7 +257,8 @@ void normalDraw(GLFWwindow *window) {
       rock.draw(shader);
     }
 
-    if (glCheckError() != GL_NO_ERROR) break;
+    if (glCheckError() != GL_NO_ERROR)
+      break;
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
@@ -350,14 +379,16 @@ void instancedDraw(GLFWwindow *window) {
     shaderInstanced.use();
     shaderInstanced.setMat4fv("projection", glm::value_ptr(projection));
     shaderInstanced.setMat4fv("view", glm::value_ptr(view));
-    if (glCheckError() != GL_NO_ERROR) break;
+    if (glCheckError() != GL_NO_ERROR)
+      break;
     for (unsigned int i = 0; i < rock.mMeshes.size(); i++) {
       rock.drawInstanced(shaderInstanced, INSTANCE_NUM);
       // glDrawElementsInstanced(GL_TRIANGLES, rock.mMeshes[i].mIndices.size(),
       //                         GL_UNSIGNED_INT, 0, INSTANCE_NUM);
     }
 
-    if (glCheckError() != GL_NO_ERROR) break;
+    if (glCheckError() != GL_NO_ERROR)
+      break;
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
