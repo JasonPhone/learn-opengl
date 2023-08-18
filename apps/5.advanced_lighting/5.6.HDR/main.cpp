@@ -20,7 +20,7 @@
 constexpr int SCREEN_W = 1024;
 constexpr int SCREEN_H = 768;
 
-glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 10.0f);
 // Front direction, not looking at point
 glm::vec3 camFront = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -42,7 +42,6 @@ void mouse_move_callback(GLFWwindow *, double xpos, double ypos);
 void mouse_scroll_callback(GLFWwindow *, double, double yoffset);
 void renderScene(const Shader &shader);
 void renderCube();
-void renderPlane();
 void renderQuad();
 
 int main() {
@@ -108,7 +107,7 @@ int main() {
   /// @brief Textures
   GLuint texWood = loadTexture("../textures/wood.png", true);
   shader.use();
-  shader.setInt("texDiffuse", 0);
+  shader.setInt("diffuseTexture", 0);
   shaderHDR.use();
   shaderHDR.setInt("hdrBuffer", 0);
 
@@ -174,8 +173,6 @@ int main() {
       ImGui::Begin("HDR");
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      ImGui::Text("Light position: (%.2f, %.2f, %.2f)", lightPos.x, lightPos.y,
-                  lightPos.z);
       ImGui::Text("Camera position: (%.2f, %.2f, %.2f)",
                   camera.cameraPosition().x, camera.cameraPosition().y,
                   camera.cameraPosition().z);
@@ -210,10 +207,10 @@ int main() {
       glBindTexture(GL_TEXTURE_2D, texWood);
       // set lighting uniforms
       for (unsigned int i = 0; i < lightPositions.size(); i++) {
-        shader.setVec3fv(("lights[" + std::to_string(i) + "].Position").c_str(),
-                         glm::value_ptr(lightPositions[i]));
-        shader.setVec3fv(("lights[" + std::to_string(i) + "].Color").c_str(),
-                         glm::value_ptr(lightColors[i]));
+        std::string light = "lights[" + std::to_string(i) + "].Position";
+        shader.setVec3fv(light.c_str(), glm::value_ptr(lightPositions[i]));
+        light = "lights[" + std::to_string(i) + "].Color";
+        shader.setVec3fv(light.c_str(), glm::value_ptr(lightColors[i]));
       }
       shader.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
       // render tunnel
@@ -226,9 +223,7 @@ int main() {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // 2. now render floating point color buffer to 2D quad and tonemap HDR
-    // colors to default framebuffer's (clamped) color range
-    // --------------------------------------------------------------------------------------------------------------------------
+    /// @brief Render color buffer to 2D quad and do tone mapping.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shaderHDR.use();
     glActiveTexture(GL_TEXTURE0);
@@ -277,9 +272,9 @@ void process_input(GLFWwindow *window) {
     camera.move(MOVE_DIRECTION::DOWN, deltaTime);
 
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    exposure = exposure + 0.001 > 1 ? 1 : exposure + 0.001;
+    exposure = exposure + 0.01 > 10 ? 10 : exposure + 0.01;
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    exposure = exposure - 0.001 < 0 ? 0 : exposure - 0.001;
+    exposure = exposure - 0.01 < 0 ? 0 : exposure - 0.01;
   if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
     hdr = 0;
   if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
@@ -316,14 +311,57 @@ unsigned int cubeVAO = 0;
 unsigned int cubeVBO = 0;
 void renderCube() {
   if (cubeVAO == 0) {
+    float vertices[] = {
+        // clang-format off
+      // back face
+      -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+       1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+       1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+       1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+      -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+      -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+      // front face
+      -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+       1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+       1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+       1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+      -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+      -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+      // left face
+      -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+      -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+      -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+      -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+      -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+      -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+      // right face
+       1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+       1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+       1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+       1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+       1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+       1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+      // bottom face
+      -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+       1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+       1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+       1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+      -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+      -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+      // top face
+      -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+       1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+       1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+       1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+      -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+      -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left
+        // clang-format on
+    };
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &cubeVBO);
     // fill buffer
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(prefab::cube), prefab::cube,
-                 GL_STATIC_DRAW);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-    // GL_STATIC_DRAW); link vertex attributes
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindVertexArray(cubeVAO);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * FLOAT_SIZE, (void *)0);
