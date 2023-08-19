@@ -15,7 +15,6 @@
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
 #include "learn-opengl/image.h"
-#include "learn-opengl/prefab.h"
 
 constexpr int SCREEN_W = 1024;
 constexpr int SCREEN_H = 768;
