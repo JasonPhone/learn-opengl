@@ -19,7 +19,7 @@
 constexpr int SCREEN_W = 1024;
 constexpr int SCREEN_H = 768;
 
-glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 10.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
 // Front direction, not looking at point
 glm::vec3 camFront = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -29,7 +29,7 @@ glm::vec3 lightPos(0.0f, 0.0f, 2.0f);
 // HDR switch.
 int hdr = 0;
 // Exposure.
-float exposure = 0;
+float exposure = 0.1;
 
 float deltaTime = 0;
 float lastFrame = 0;
@@ -100,50 +100,64 @@ int main() {
 
   /// @brief build shader program
   // Shader shaderPlane{"../shaders/plane.vert", "../shaders/plane.frag"};
-  Shader shader{"../shaders/lighting.vert", "../shaders/lighting.frag"};
+  Shader shaderScene{"../shaders/scene.vert", "../shaders/scene.frag"};
+  Shader shaderLight{"../shaders/scene.vert", "../shaders/light.frag"};
   Shader shaderHDR{"../shaders/hdr.vert", "../shaders/hdr.frag"};
 
   /// @brief Textures
   GLuint texWood = loadTexture("../textures/wood.png", true);
-  shader.use();
-  shader.setInt("diffuseTexture", 0);
+  GLuint texBox = loadTexture("../textures/container2_diffuse.png", true);
+  shaderScene.use();
+  shaderScene.setInt("diffuseTexture", 0);
   shaderHDR.use();
   shaderHDR.setInt("hdrBuffer", 0);
 
   std::vector<glm::vec3> lightPositions;
-  lightPositions.push_back(glm::vec3(0.0f, 0.0f, 49.5f)); // back light
-  lightPositions.push_back(glm::vec3(-1.4f, -1.9f, 9.0f));
-  lightPositions.push_back(glm::vec3(0.0f, -1.8f, 4.0f));
-  lightPositions.push_back(glm::vec3(0.8f, -1.7f, 6.0f));
+  lightPositions.push_back(glm::vec3(0.0f, 0.5f, 1.5f));
+  lightPositions.push_back(glm::vec3(-4.0f, 0.5f, -3.0f));
+  lightPositions.push_back(glm::vec3(3.0f, 0.5f, 1.0f));
+  lightPositions.push_back(glm::vec3(-.8f, 2.4f, -1.0f));
   std::vector<glm::vec3> lightColors;
-  lightColors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
-  lightColors.push_back(glm::vec3(0.1f, 0.0f, 0.0f));
-  lightColors.push_back(glm::vec3(0.0f, 0.0f, 0.2f));
-  lightColors.push_back(glm::vec3(0.0f, 0.1f, 0.0f));
+  lightColors.push_back(glm::vec3(5.0f, 5.0f, 5.0f));
+  lightColors.push_back(glm::vec3(10.0f, 0.0f, 0.0f));
+  lightColors.push_back(glm::vec3(0.0f, 0.0f, 15.0f));
+  lightColors.push_back(glm::vec3(0.0f, 5.0f, 0.0f));
 
   /// @brief Configure float framebuffer.
   GLuint hdrFBO;
   glGenFramebuffers(1, &hdrFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
   // Color buffer.
-  GLuint colorBuffer;
-  glGenTextures(1, &colorBuffer);
-  glBindTexture(GL_TEXTURE_2D, colorBuffer);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_W, SCREEN_H, 0, GL_RGBA,
-               GL_FLOAT, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  GLuint colorBuffers[2];
+  glGenTextures(2, colorBuffers);
+  for (unsigned int i = 0; i < 2; i++) {
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_W, SCREEN_H, 0, GL_RGBA,
+                 GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Clamp to the edge as the blur filter would
+    // otherwise sample repeated texture values
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // Attach texture to hdrFBO.
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,
+                           GL_TEXTURE_2D, colorBuffers[i], 0);
+  }
   // Depth buffer (renderbuffer).
   GLuint rboDepth;
   glGenRenderbuffers(1, &rboDepth);
   glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_W,
                         SCREEN_H);
-  // Attach buffers.
-  glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                         colorBuffer, 0);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                             GL_RENDERBUFFER, rboDepth);
+  // Attach buffers.
+  GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    std::cout << "Framebuffer not complete!" << std::endl;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Render loop
   while (!glfwWindowShouldClose(window)) {
@@ -169,7 +183,7 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     {
-      ImGui::Begin("HDR");
+      ImGui::Begin("Bloom");
       ImGui::Text("%.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::Text("Camera position: (%.2f, %.2f, %.2f)",
@@ -190,7 +204,6 @@ int main() {
 
     /****** Render ******/
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /// @brief Offline rendering into framebuffer.
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
@@ -199,26 +212,77 @@ int main() {
       glm::mat4 projection = glm::perspective(
           glm::radians(camera.fov()), 1.0 * SCREEN_W / SCREEN_H, 0.1, 100.0);
       glm::mat4 view = camera.viewMatrix();
-      shader.use();
-      shader.setMat4fv("projection", glm::value_ptr(projection));
-      shader.setMat4fv("view", glm::value_ptr(view));
+      glm::mat4 model = glm::mat4(1.0f);
+      shaderScene.use();
+      shaderScene.setMat4fv("projection", glm::value_ptr(projection));
+      shaderScene.setMat4fv("view", glm::value_ptr(view));
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, texWood);
       // set lighting uniforms
       for (unsigned int i = 0; i < lightPositions.size(); i++) {
-        std::string light = "lights[" + std::to_string(i) + "].Position";
-        shader.setVec3fv(light.c_str(), glm::value_ptr(lightPositions[i]));
-        light = "lights[" + std::to_string(i) + "].Color";
-        shader.setVec3fv(light.c_str(), glm::value_ptr(lightColors[i]));
+        shaderScene.setVec3fv(
+            ("lights[" + std::to_string(i) + "].Position").c_str(),
+            glm::value_ptr(lightPositions[i]));
+        shaderScene.setVec3fv(
+            ("lights[" + std::to_string(i) + "].Color").c_str(),
+            glm::value_ptr(lightColors[i]));
       }
-      shader.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
-      // render tunnel
-      glm::mat4 model = glm::mat4(1.0f);
-      model = glm::translate(model, glm::vec3(0.0f, 0.0f, 25.0));
-      model = glm::scale(model, glm::vec3(2.5f, 2.5f, 27.5f));
-      shader.setMat4fv("model", glm::value_ptr(model));
-      shader.setBool("inverse_normals", true);
+      shaderScene.setVec3fv("viewPos", glm::value_ptr(camera.cameraPosition()));
+      // One large cube as floor.
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
+      model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
       renderCube();
+      // Multiple cubes as the scenery.
+      glBindTexture(GL_TEXTURE_2D, texBox);
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+      model = glm::scale(model, glm::vec3(0.5f));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
+      renderCube();
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+      model = glm::scale(model, glm::vec3(0.5f));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
+      renderCube();
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
+      model = glm::rotate(model, glm::radians(60.0f),
+                          glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
+      renderCube();
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
+      model = glm::rotate(model, glm::radians(23.0f),
+                          glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+      model = glm::scale(model, glm::vec3(1.25));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
+      renderCube();
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
+      model = glm::rotate(model, glm::radians(124.0f),
+                          glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
+      renderCube();
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
+      model = glm::scale(model, glm::vec3(0.5f));
+      shaderScene.setMat4fv("model", glm::value_ptr(model));
+      renderCube();
+
+      // Bright cubes as light sources.
+      shaderLight.use();
+      shaderLight.setMat4fv("projection", glm::value_ptr(projection));
+      shaderLight.setMat4fv("view", glm::value_ptr(view));
+      for (unsigned int i = 0; i < lightPositions.size(); i++) {
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(lightPositions[i]));
+        model = glm::scale(model, glm::vec3(0.25f));
+        shaderLight.setMat4fv("model", glm::value_ptr(model));
+        shaderLight.setVec3fv("lightColor", glm::value_ptr(lightColors[i]));
+        renderCube();
+      }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -226,7 +290,8 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shaderHDR.use();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorBuffer);
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+    // glBindTexture(GL_TEXTURE_2D, texBox);
     shaderHDR.setInt("hdr", hdr);
     shaderHDR.setFloat("exposure", exposure);
     renderQuad();
@@ -278,10 +343,6 @@ void process_input(GLFWwindow *window) {
     hdr = 0;
   if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
     hdr = 1;
-  if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-    hdr = 2;
-  if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-    hdr = 3;
 }
 double lastX, lastY;
 bool firstMouse = true;
