@@ -26,8 +26,8 @@ glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera camera{camPos, camFront, camUp};
 
 glm::vec3 lightPos(0.0f, 0.0f, 2.0f);
-// HDR switch.
-int hdr = 0;
+// Bloom switch.
+int bloom = 0;
 // Exposure.
 float exposure = 0.1;
 
@@ -99,18 +99,25 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   /// @brief build shader program
-  // Shader shaderPlane{"../shaders/plane.vert", "../shaders/plane.frag"};
+  // Both output to twe color buffers by luminance.
   Shader shaderScene{"../shaders/scene.vert", "../shaders/scene.frag"};
   Shader shaderLight{"../shaders/scene.vert", "../shaders/light.frag"};
-  Shader shaderHDR{"../shaders/hdr.vert", "../shaders/hdr.frag"};
+  Shader shaderMix{"../shaders/empty.vert", "../shaders/mix.frag"};
+  Shader shaderBlur{"../shaders/empty.vert", "../shaders/blur.frag"};
+  Shader shaderTex{"../shaders/empty.vert", "../shaders/texture.frag"};
 
   /// @brief Textures
   GLuint texWood = loadTexture("../textures/wood.png", true);
   GLuint texBox = loadTexture("../textures/container2_diffuse.png", true);
   shaderScene.use();
   shaderScene.setInt("diffuseTexture", 0);
-  shaderHDR.use();
-  shaderHDR.setInt("hdrBuffer", 0);
+  shaderMix.use();
+  shaderMix.setInt("scene", 0);
+  shaderMix.setInt("bloomBlur", 1);
+  shaderBlur.use();
+  shaderBlur.setInt("image", 0);
+  shaderTex.use();
+  shaderTex.setInt("texture1", 0);
 
   std::vector<glm::vec3> lightPositions;
   lightPositions.push_back(glm::vec3(0.0f, 0.5f, 1.5f));
@@ -129,6 +136,8 @@ int main() {
   glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
   // Color buffer.
   GLuint colorBuffers[2];
+  constexpr GLenum attachments[2] = {GL_COLOR_ATTACHMENT0,
+                                     GL_COLOR_ATTACHMENT1};
   glGenTextures(2, colorBuffers);
   for (unsigned int i = 0; i < 2; i++) {
     glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
@@ -141,9 +150,10 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     // Attach texture to hdrFBO.
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,
-                           GL_TEXTURE_2D, colorBuffers[i], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachments[i], GL_TEXTURE_2D,
+                           colorBuffers[i], 0);
   }
+  glDrawBuffers(2, attachments);
   // Depth buffer (renderbuffer).
   GLuint rboDepth;
   glGenRenderbuffers(1, &rboDepth);
@@ -152,12 +162,26 @@ int main() {
                         SCREEN_H);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                             GL_RENDERBUFFER, rboDepth);
-  // Attach buffers.
-  GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-  glDrawBuffers(2, attachments);
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "Framebuffer not complete!" << std::endl;
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // Switch buffer for blurring.
+  GLuint switchFBOs[2];
+  GLuint switchBuffers[2];
+  glGenFramebuffers(2, switchFBOs);
+  glGenTextures(2, switchBuffers);
+  for (unsigned int i = 0; i < 2; i++) {
+    glBindFramebuffer(GL_FRAMEBUFFER, switchFBOs[i]);
+    glBindTexture(GL_TEXTURE_2D, switchBuffers[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_W, SCREEN_H, 0, GL_RGBA,
+                 GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           switchBuffers[i], 0);
+  }
 
   // Render loop
   while (!glfwWindowShouldClose(window)) {
@@ -196,19 +220,20 @@ int main() {
       ImGui::Text("Camera right: (%.2f, %.2f, %.2f)", camera.cameraRight().x,
                   camera.cameraRight().y, camera.cameraRight().z);
 
-      ImGui::Text("HDR: %d", hdr);
+      ImGui::Text("Bloom: %c", "01"[bloom]);
       ImGui::Text("Exposure: %.2f", exposure);
 
       ImGui::End();
     }
 
     /****** Render ******/
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0, 0, 0, 1);
+    // glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     /// @brief Offline rendering into framebuffer.
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     {
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glm::mat4 projection = glm::perspective(
           glm::radians(camera.fov()), 1.0 * SCREEN_W / SCREEN_H, 0.1, 100.0);
       glm::mat4 view = camera.viewMatrix();
@@ -278,7 +303,7 @@ int main() {
       for (unsigned int i = 0; i < lightPositions.size(); i++) {
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(lightPositions[i]));
-        model = glm::scale(model, glm::vec3(0.25f));
+        model = glm::scale(model, glm::vec3(0.1f));
         shaderLight.setMat4fv("model", glm::value_ptr(model));
         shaderLight.setVec3fv("lightColor", glm::value_ptr(lightColors[i]));
         renderCube();
@@ -286,15 +311,36 @@ int main() {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    /// @brief Blurring.
+    bool horizontal = true, notDumped = true;
+    int amount = 10;
+    shaderBlur.use();
+    for (int i = 0; i < amount; i++) {
+      glBindFramebuffer(GL_FRAMEBUFFER, switchFBOs[horizontal]);
+      shaderBlur.setInt("horizontal", horizontal);
+      glBindTexture(GL_TEXTURE_2D,
+                    notDumped ? colorBuffers[1] : switchBuffers[!horizontal]);
+      renderQuad();
+      horizontal = !horizontal;
+      if (notDumped)
+        notDumped = false;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     /// @brief Render color buffer to 2D quad and do tone mapping.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    shaderHDR.use();
+    shaderMix.use();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-    // glBindTexture(GL_TEXTURE_2D, texBox);
-    shaderHDR.setInt("hdr", hdr);
-    shaderHDR.setFloat("exposure", exposure);
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, switchBuffers[!horizontal]);
+    shaderMix.setBool("bloom", bloom);
+    shaderMix.setFloat("exposure", exposure);
     renderQuad();
+    // shaderTex.use();
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D, switchBuffers[!horizontal]);
+    // renderQuad();
 
     if (glCheckError() != GL_NO_ERROR)
       break;
@@ -340,9 +386,9 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     exposure = exposure - 0.01 < 0 ? 0 : exposure - 0.01;
   if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
-    hdr = 0;
+    bloom = 0;
   if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-    hdr = 1;
+    bloom = 1;
 }
 double lastX, lastY;
 bool firstMouse = true;
