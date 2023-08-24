@@ -99,7 +99,7 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   /// @brief build shader program
-  // Both output to twe color buffers by luminance.
+  // Both output to two color buffers by luminance.
   Shader shaderScene{"../shaders/scene.vert", "../shaders/scene.frag"};
   Shader shaderLight{"../shaders/scene.vert", "../shaders/light.frag"};
   Shader shaderMix{"../shaders/empty.vert", "../shaders/mix.frag"};
