@@ -44,17 +44,12 @@ void renderCube();
 void renderQuad();
 
 int main() {
-  /**
-   * @brief init glfw window
-   */
+  /// @brief init glfw window
   glfwInit();                                    // init GLFW
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // OpenGL 3.x
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // OpenGL x.3
   glfwWindowHint(GLFW_OPENGL_PROFILE,
                  GLFW_OPENGL_CORE_PROFILE); // use core profile
-
-  // Enable MSAA.
-  glfwWindowHint(GLFW_SAMPLES, 4);
   // Get the glfw window
   GLFWwindow *window =
       glfwCreateWindow(SCREEN_W, SCREEN_H, "LearnOpenGL", NULL, NULL);
@@ -68,17 +63,14 @@ int main() {
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetCursorPosCallback(window, mouse_move_callback);
   glfwSetScrollCallback(window, mouse_scroll_callback);
-
-  // glad: load all OpenGL function pointers
-  // ---------------------------------------
+  // Load all OpenGL function pointers through glad.
   if (!gladLoadGL()) {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
-  /// @brief Render initializaion
+
+  /**************************** Render init ****************************/
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_MULTISAMPLE);
-  // glEnable(GL_FRAMEBUFFER_SRGB);
 
   // Setup Dear ImGui context
   printf("imgui context\n");
@@ -88,30 +80,56 @@ int main() {
   (void)io;
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  printf("binding\n");
+  printf("imgui binding\n");
   // Setup Platform/Renderer bindings
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   const char *glsl_version = "#version 330";
   ImGui_ImplOpenGL3_Init(glsl_version);
 
   glViewport(0, 0, SCREEN_W, SCREEN_H);
-  // Register the resize callback
+  // Resize callback.
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-  /// @brief build shader program
-  // Both output to twe color buffers by luminance.
+  /// @brief Build shader program
   Shader shaderGeometry{"../shaders/gpass.vert", "../shaders/gpass.frag"};
   Shader shaderLighting{"../shaders/lpass.vert", "../shaders/lpass.frag"};
   Shader shaderTexture{"../shaders/texture.vert", "../shaders/texture.frag"};
+  shaderTexture.use();
+  shaderTexture.setInt("texture1", 0);
 
   /// @brief Other data.
 
   /// @brief Other ops.
+  // Prepare g-buffers using color buffer.
   GLuint bufferG = 0;
-
+  glGenFramebuffers(1, &bufferG);
+  glBindFramebuffer(GL_FRAMEBUFFER, bufferG);
+  GLuint gBufferTextures[3] = {0};
+  GLenum gBufferTexInternalFmt[3] = {GL_RGBA16F, GL_RGBA16F, GL_RGBA};
+  GLenum gBufferTexDataType[3] = {GL_FLOAT, GL_FLOAT, GL_UNSIGNED_BYTE};
+  GLenum gBufferTexAttach[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+                                GL_COLOR_ATTACHMENT2};
+  for (int i = 0; i < 3; i++) {
+    glGenTextures(1, &(gBufferTextures[i]));
+    glBindTexture(GL_TEXTURE_2D, gBufferTextures[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, gBufferTexInternalFmt[i], SCREEN_W, SCREEN_H,
+                 0, GL_RGBA, gBufferTexDataType[i], NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, gBufferTexAttach[i], GL_TEXTURE_2D,
+                           gBufferTextures[i], 0);
+  }
+  glDrawBuffers(3, gBufferTexAttach);
+  GLuint gBufferDepth;
+  glGenRenderbuffers(1, &gBufferDepth);
+  glBindRenderbuffer(GL_RENDERBUFFER, gBufferDepth);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_W,
+                        SCREEN_H);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, gBufferDepth);
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "Framebuffer not complete!" << std::endl;
-  // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   /// @brief Render loop
   while (!glfwWindowShouldClose(window)) {
@@ -153,8 +171,18 @@ int main() {
     glBindFramebuffer(GL_FRAMEBUFFER, bufferG);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    shaderGeometry.use();
+    for (;;) {
+      // Object-depended uniforms and rendering.
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /// @brief Lighting pass
+    shaderLighting.use();
+    // Bind all G-buffer textures.
+    // Lighting uniforms.
+    renderQuad();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if (glCheckError() != GL_NO_ERROR)
       break;
