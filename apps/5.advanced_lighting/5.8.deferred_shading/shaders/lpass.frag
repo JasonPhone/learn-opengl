@@ -16,6 +16,7 @@ struct Light {
 const int N_LIGHTS = 32;
 uniform Light lights[N_LIGHTS];
 uniform vec3 viewPos;
+uniform float exposure;
 
 void main() {
   // Get data from g-buffer.
@@ -45,5 +46,10 @@ void main() {
     result += diffuse + specular;
   }
 
-  FragColor = vec4(result, 1);
+  const float gamma = 2.2;
+  // Tone mapping.
+  result = vec3(1.0) - exp(-result * exposure);
+  // Gamma correct.
+  result = pow(result, vec3(1.0 / gamma));
+  FragColor = vec4(result, 1.0);
 }
