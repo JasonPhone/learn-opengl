@@ -119,13 +119,16 @@ void Model::loadModel(const std::string &path, bool triangulate) {
   bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
                               path.c_str(), mDirectory.c_str(), triangulate);
 
-  if (!warn.empty()) WARN << warn << std::endl;
-  if (!err.empty()) ERR << err << std::endl;
+  if (!warn.empty())
+    WARN << warn << std::endl;
+  if (!err.empty())
+    ERR << err << std::endl;
   if (!ret) {
     ERR << "Failed to load/parse .obj.\n";
   } else {
     processModel(attrib, shapes, materials, mMeshes, mDirectory);
   }
+  LOG << "Done loading " << path << std::endl;
 }
 
 static void processModel(const tinyobj::attrib_t &attrib,
