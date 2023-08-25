@@ -15,7 +15,7 @@
 #include "learn-opengl/Model.h"
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
-#include "learn-opengl/image.h"
+// #include "learn-opengl/image.h"
 
 constexpr int SCREEN_W = 1024;
 constexpr int SCREEN_H = 768;
@@ -92,11 +92,15 @@ int main() {
   /// @brief Build shader program
   Shader shaderGeometry{"../shaders/gpass.vert", "../shaders/gpass.frag"};
   Shader shaderLighting{"../shaders/lpass.vert", "../shaders/lpass.frag"};
+  Shader shaderLightBox{"../shaders/lightbox.vert", "../shaders/lightbox.frag"};
+  Shader shaderHDR{"../shaders/hdr.vert", "../shaders/hdr.frag"};
   Shader shaderTexture{"../shaders/texture.vert", "../shaders/texture.frag"};
   shaderLighting.use();
   shaderLighting.setInt("gPosition", 0);
   shaderLighting.setInt("gNormal", 1);
   shaderLighting.setInt("gDiffSpec", 2);
+  shaderHDR.use();
+  shaderHDR.setInt("texture1", 0);
   shaderTexture.use();
   shaderTexture.setInt("texture1", 0);
 
@@ -133,29 +137,53 @@ int main() {
   GLuint bufferG = 0;
   glGenFramebuffers(1, &bufferG);
   glBindFramebuffer(GL_FRAMEBUFFER, bufferG);
-  GLuint gBufferTextures[3] = {0};
-  GLenum gBufferTexInternalFmt[3] = {GL_RGBA16F, GL_RGBA16F, GL_RGBA};
-  GLenum gBufferTexDataType[3] = {GL_FLOAT, GL_FLOAT, GL_UNSIGNED_BYTE};
-  GLenum gBufferTexAttach[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-                                GL_COLOR_ATTACHMENT2};
+  GLuint texGColor[3] = {0};
+  // Diffuse and specular is ok in low precision.
+  GLenum texGColorInternalFmt[3] = {GL_RGBA16F, GL_RGBA16F, GL_RGBA};
+  GLenum texGColorDataType[3] = {GL_FLOAT, GL_FLOAT, GL_UNSIGNED_BYTE};
+  GLenum texGColorAttach[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+                               GL_COLOR_ATTACHMENT2};
   for (int i = 0; i < 3; i++) {
-    glGenTextures(1, &(gBufferTextures[i]));
-    glBindTexture(GL_TEXTURE_2D, gBufferTextures[i]);
-    glTexImage2D(GL_TEXTURE_2D, 0, gBufferTexInternalFmt[i], SCREEN_W, SCREEN_H,
-                 0, GL_RGBA, gBufferTexDataType[i], NULL);
+    glGenTextures(1, &(texGColor[i]));
+    glBindTexture(GL_TEXTURE_2D, texGColor[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, texGColorInternalFmt[i], SCREEN_W, SCREEN_H,
+                 0, GL_RGBA, texGColorDataType[i], NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, gBufferTexAttach[i], GL_TEXTURE_2D,
-                           gBufferTextures[i], 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, texGColorAttach[i], GL_TEXTURE_2D,
+                           texGColor[i], 0);
   }
-  glDrawBuffers(3, gBufferTexAttach);
-  GLuint gBufferDepth;
-  glGenRenderbuffers(1, &gBufferDepth);
-  glBindRenderbuffer(GL_RENDERBUFFER, gBufferDepth);
+  glDrawBuffers(3, texGColorAttach);
+  GLuint rboGDepth;
+  glGenRenderbuffers(1, &rboGDepth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rboGDepth);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_W,
                         SCREEN_H);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                            GL_RENDERBUFFER, gBufferDepth);
+                            GL_RENDERBUFFER, rboGDepth);
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    std::cout << "Framebuffer not complete!" << std::endl;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // HDR buffer.
+  GLuint bufferHDR = 0;
+  glGenFramebuffers(1, &bufferHDR);
+  glBindFramebuffer(GL_FRAMEBUFFER, bufferHDR);
+  GLuint texHDRColor = 0;
+  glGenTextures(1, &texHDRColor);
+  glBindTexture(GL_TEXTURE_2D, texHDRColor);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_W, SCREEN_H, 0, GL_RGBA,
+               GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         texHDRColor, 0);
+  GLuint rboHDRDepth = 0;
+  glGenRenderbuffers(1, &rboHDRDepth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rboHDRDepth);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_W,
+                        SCREEN_H);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, rboHDRDepth);
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "Framebuffer not complete!" << std::endl;
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -199,12 +227,12 @@ int main() {
     /**************************** Rendering ****************************/
     /// @brief Geometry pass.
     glBindFramebuffer(GL_FRAMEBUFFER, bufferG);
+    glm::mat4 projection = glm::perspective(
+        glm::radians(camera.fov()), 1.0 * SCREEN_W / SCREEN_H, 0.1, 100.0);
+    glm::mat4 view = camera.viewMatrix();
+    glm::mat4 model = glm::mat4{1};
     {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      glm::mat4 projection = glm::perspective(
-          glm::radians(camera.fov()), 1.0 * SCREEN_W / SCREEN_H, 0.1, 100.0);
-      glm::mat4 view = camera.viewMatrix();
-      glm::mat4 model = glm::mat4{1};
       shaderGeometry.use();
       shaderGeometry.setBool("inverse_normal", false);
       shaderGeometry.setMat4fv("projection", glm::value_ptr(projection));
@@ -221,12 +249,13 @@ int main() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /// @brief Lighting pass
+    glBindFramebuffer(GL_FRAMEBUFFER, bufferHDR);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shaderLighting.use();
     // Bind all G-buffer textures.
     for (unsigned int i = 0; i < 3; i++) {
       glActiveTexture(GL_TEXTURE0 + i);
-      glBindTexture(GL_TEXTURE_2D, gBufferTextures[i]);
+      glBindTexture(GL_TEXTURE_2D, texGColor[i]);
     }
     // Lighting uniforms.
     for (size_t i = 0; i < lightPositions.size(); i++) {
@@ -236,8 +265,8 @@ int main() {
       shaderLighting.setVec3fv(
           ("lights[" + std::to_string(i) + "].Color").c_str(),
           glm::value_ptr(lightColors[i]));
-      constexpr float linear = 0.7f;
-      constexpr float quadratic = 1.8f;
+      constexpr float linear = 0.3f;
+      constexpr float quadratic = 1.2f;
       shaderLighting.setFloat(
           ("lights[" + std::to_string(i) + "].aLinear").c_str(), linear);
       shaderLighting.setFloat(
@@ -245,10 +274,33 @@ int main() {
     }
     shaderLighting.setVec3fv("viewPos",
                              glm::value_ptr(camera.cameraPosition()));
-    shaderLighting.setFloat("exposure", exposure);
+    renderQuad();
+    // Light boxes.
+    // src: bufferG, dst bufferHDR.
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, bufferG);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, bufferHDR);
+    glBlitFramebuffer(0, 0, SCREEN_W, SCREEN_H, 0, 0, SCREEN_W, SCREEN_H,
+                      GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, bufferHDR);
+    shaderLightBox.use();
+    shaderLightBox.setMat4fv("projection", glm::value_ptr(projection));
+    shaderLightBox.setMat4fv("view", glm::value_ptr(view));
+    for (unsigned int i = 0; i < lightPositions.size(); i++) {
+      model = glm::mat4(1.0f);
+      model = glm::translate(model, lightPositions[i]);
+      model = glm::scale(model, glm::vec3(0.1f));
+      shaderLightBox.setMat4fv("model", glm::value_ptr(model));
+      shaderLightBox.setVec3fv("lightColor", glm::value_ptr(lightColors[i]));
+      renderCube();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Tone mapping.
+    shaderHDR.use();
+    shaderHDR.setFloat("exposure", exposure);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texHDRColor);
     renderQuad();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     /// @brief Debugging.
     // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // shaderTexture.use();
