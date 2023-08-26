@@ -16,7 +16,7 @@
 #include "learn-opengl/Model.h"
 #include "learn-opengl/Shader.h"
 #include "learn-opengl/gl_utility.h"
-// #include "learn-opengl/image.h"
+#include "learn-opengl/image.h"
 
 constexpr int SCREEN_W = 1024;
 constexpr int SCREEN_H = 768;
@@ -159,6 +159,8 @@ int main() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  GLuint texWood = loadTexture("../textures/wood.png", true);
 
   // G-buffer.
   GLuint fboG = 0;
@@ -305,6 +307,9 @@ int main() {
       model = glm::scale(model, glm::vec3(7.5f, 7.5f, 7.5f));
       shaderGeometry.setMat4fv("model", glm::value_ptr(model));
       shaderGeometry.setBool("inverse_normal", true);
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, texWood);
       renderCube();
       // backpack model on the floor
       model = glm::mat4(1.0f);
@@ -417,7 +422,7 @@ int main() {
     // {
     //   shaderTexture.use();
     //   glActiveTexture(GL_TEXTURE0);
-    //   glBindTexture(GL_TEXTURE_2D, texSSAOBlurColor);
+    //   glBindTexture(GL_TEXTURE_2D, texGColor[2]);
     //   renderQuad();
     // }
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
