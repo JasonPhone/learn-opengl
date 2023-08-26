@@ -3,9 +3,10 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D gPosition;
-uniform sampler2D gNormal;
+uniform sampler2D gPosition; // Now view-space.
+uniform sampler2D gNormal;   // Now view-space.
 uniform sampler2D gDiffSpec;
+uniform sampler2D texSSAO;
 
 struct Light {
   vec3 Position;
@@ -15,7 +16,7 @@ struct Light {
 };
 const int N_LIGHTS = 32;
 uniform Light lights[N_LIGHTS];
-uniform vec3 viewPos;
+uniform bool ssao;
 
 void main() {
   // Get data from g-buffer.
@@ -23,10 +24,12 @@ void main() {
   vec3 Normal = texture(gNormal, TexCoords).rgb;
   vec3 Diffuse = texture(gDiffSpec, TexCoords).rgb;
   float Specular = texture(gDiffSpec, TexCoords).a;
+  float AO = texture(texSSAO, TexCoords).r;
 
   // Usual shading for every light.
-  vec3 result = Diffuse * .1; // Ambient.
-  vec3 wo = normalize(viewPos - FragPos);
+  vec3 result = Diffuse * .3; // Ambient.
+  if (ssao) result *= AO;
+  vec3 wo = normalize(- FragPos);
   for (int i = 0; i < N_LIGHTS; i++) {
     // Diffuse.
     vec3 wi = normalize(lights[i].Position - FragPos);
@@ -46,4 +49,5 @@ void main() {
   }
 
   FragColor = vec4(result, 1.0);
+  FragColor = vec4(Diffuse, 1.0);
 }

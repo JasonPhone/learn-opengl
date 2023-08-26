@@ -15,12 +15,12 @@ out vec3 FragPos;
 void main() {
   TexCoords = aTexCoords;
 
-  mat3 normalMatrix = transpose(inverse(mat3(model)));
+  mat3 normalMatrix = transpose(inverse(mat3(view * model)));
   Normal = normalize(normalMatrix * aNormal);
   if (inverse_normal)
     Normal = -Normal;
 
-  FragPos = vec3(model * vec4(aPos, 1));
+  FragPos = vec3(view * model * vec4(aPos, 1));
 
   gl_Position = projection * view * model * vec4(aPos, 1.0);
 }
